@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ZeroCert — Free, open, blockchain-anchored certificate platform for communities" />
+    <meta name="theme-color" content="#07070F" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="ZeroCert — Blockchain Certificate Platform" />
+    <meta property="og:description" content="Issue verifiable, SHA-256 hashed certificates for free. Multi-org collaboration, bulk email, full analytics." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zerocert.app" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ZeroCert" />
+    <meta name="twitter:description" content="Free blockchain-anchored certificates for communities" />
+
+    <title>ZeroCert — Blockchain Certificates</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #07070F;
+        color: #F0F0FA;
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root { min-height: 100vh; }
+      /* Loading state */
+      #loading {
+        position: fixed; inset: 0;
+        background: #07070F;
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        letter-spacing: 4px;
+        color: #E8FF00;
+        text-transform: uppercase;
+        z-index: 9999;
+        transition: opacity 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">Initializing ZeroCert…</div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const el = document.getElementById('loading');
+          if (el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
+        }, 400);
+      });
+    </script>
+  </body>
+</html>
