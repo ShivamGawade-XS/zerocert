@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { jsPDF } from "jspdf";
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 async function sha256(str) {
@@ -33,12 +34,39 @@ const downloadCanvas = (canvas, filename) => {
   canvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
     const a   = document.createElement("a");
-    a.href    = url; a.download = filename;
+    a.href    = url; a.download = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }, "image/png");
 };
+const downloadPDF = (canvas, filename) => {
+  const imgData = canvas.toDataURL("image/jpeg", 0.95);
+  const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
+  pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+  pdf.save(filename.replace(/[^a-zA-Z0-9.\-_]/g, '_'));
+};
+async function sendCertEmail({ to, name, certId, eventName, orgName, issuedAt, subject, body }) {
+  const apiKey = db.get("resendKey", "");
+  if (!apiKey) return { ok: false, error: "No Resend API key configured" };
+  const d = new Date(issuedAt).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+  const verifyUrl = `${window.location.origin}${window.location.pathname}?verify=${certId}`;
+  const vars = { Name: name, Email: to, EventName: eventName, OrgName: orgName, CertID: certId, IssueDate: d, VerifyURL: verifyUrl };
+  const finalSubject = (subject || DEFAULT_SUBJECT).replace(/\{\{(\w[\w\s]*)\}\}/g, (_, k) => vars[k] || `{{${k}}}`);
+  const finalBody = (body || DEFAULT_BODY).replace(/\{\{(\w[\w\s]*)\}\}/g, (_, k) => vars[k] || `{{${k}}}`);
+  const html = `<div style="font-family:monospace;white-space:pre-wrap;line-height:1.8;color:#333;max-width:600px;margin:0 auto;padding:20px;">${finalBody.replace(/\n/g,'<br>')}</div><div style="background:#0C0C1C;text-align:center;padding:14px;"><div style="font-family:monospace;font-size:12px;color:#E8FF00;font-weight:bold;">ZEROCERT · BLOCKCHAIN VERIFIED</div><div style="font-family:monospace;font-size:10px;color:#55557A;margin-top:4px;"><a href="${verifyUrl}" style="color:#55557A;">${verifyUrl}</a></div></div>`;
+  try {
+    const res = await fetch('/api/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ to, subject: finalSubject, html, fromName: orgName }),
+    });
+    const data = await res.json();
+    return { ok: res.ok, ...data };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
 function injectVars(text, row={}, certId="ZC-P", issuedAt=new Date().toISOString(), eventName="", orgName="") {
   const d = new Date(issuedAt).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
   return text
@@ -191,6 +219,9 @@ const TEMPLATES = [
   {id:"minimal", name:"Pure Minimal",   desc:"Generous white space, hairline rules, editorial",     tag:"ELEGANT",   accent:"#000000"},
   {id:"brutal",  name:"Brutalist",      desc:"Thick Impact headers, raw black borders, bold yellow",tag:"EDGY",      accent:"#F5F500"},
   {id:"retro",   name:"RetroWave",      desc:"80s synthwave grid, chrome type, vaporwave sunset",   tag:"FUN",       accent:"#FF88FF"},
+  {id:"corp",    name:"Corporate Blue", desc:"Clean and professional blue theme for corporate events",tag:"FORMAL",    accent:"#0055FF"},
+  {id:"midnight",name:"Midnight Web3",  desc:"Dark purple/blue gradient for blockchain hackathons",   tag:"MODERN",    accent:"#8A2BE2"},
+  {id:"vintage", name:"Vintage Ribbon", desc:"Classic vintage style with ornate borders",           tag:"ELEGANT",   accent:"#8B4513"},
 ];
 
 // Draws signature block for any template
@@ -387,6 +418,57 @@ function drawCert(ctx, cert, tmpl, W, H, logoImgs, sigImgs) {
     if(sigs.length>0) drawSignatures(ctx,sigs,W,H,sigImgs,"retro");
     const gb=ctx.createLinearGradient(0,0,W,0);gb.addColorStop(0,"#FF00FF");gb.addColorStop(.5,"#8888FF");gb.addColorStop(1,"#FF00FF");ctx.fillStyle=gb;ctx.fillRect(0,H-26,W,26);ctx.fillStyle="#FFF";ctx.font="9px 'Courier New'";ctx.fillText(`VERIFY: ZEROCERT.APP/VERIFY — ${certId}`,W/2,H-8);
   }
+  else if (tmpl === "corp") {
+    ctx.fillStyle="#FFFFFF";ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#0055FF";ctx.fillRect(0,0,W,16);ctx.fillRect(0,H-16,W,16);
+    ctx.strokeStyle="#E0E5EC";ctx.lineWidth=2;ctx.strokeRect(32,32,W-64,H-64);
+    let lx=48;const lh=48;all.filter(Boolean).forEach((img,i)=>{if(!img)return;const lw=Math.round((img.width/img.height)*lh);ctx.drawImage(img,lx,48,lw,lh);lx+=lw+16;});
+    ctx.fillStyle="#0055FF";ctx.font="bold 12px 'Courier New'";ctx.textAlign="right";ctx.fillText(org.toUpperCase(),W-48,72);
+    ctx.textAlign="center";ctx.fillStyle="#112233";ctx.font="bold 54px Georgia";ctx.fillText("CERTIFICATE",W/2,180);
+    ctx.fillStyle="#556677";ctx.font="italic 16px Georgia";ctx.fillText("of Professional Achievement",W/2,210);
+    ctx.fillStyle="#0055FF";ctx.fillRect(W/2-40,230,80,2);
+    ctx.fillStyle="#556677";ctx.font="14px 'Courier New'";ctx.fillText("PRESENTED TO:",W/2,270);
+    ctx.fillStyle="#112233";ctx.font="bold 42px Georgia";ctx.fillText(name,W/2,320);
+    ctx.fillStyle="#556677";ctx.font="14px 'Courier New'";ctx.fillText(`FOR SUCCESSFULLY COMPLETING: ${evName}`,W/2,360);
+    ctx.font="11px 'Courier New'";extras.forEach(([k,v],i)=>ctx.fillText(`${k}: ${v}`,W/2,390+i*18));
+    const ey=410+extras.length*18;ctx.fillStyle="#8899AA";ctx.font="10px 'Courier New'";ctx.fillText(`${issued}  ·  ID: ${certId}`,W/2,ey);
+    if(sigs.length>0) drawSignatures(ctx,sigs,W,H,sigImgs,"classic");
+    ctx.fillStyle="#8899AA";ctx.font="9px 'Courier New'";ctx.fillText(`VERIFY AT ZEROCERT.APP — ${certId}`,W/2,H-30);
+  }
+  else if (tmpl === "midnight") {
+    const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#0B0B1A");bg.addColorStop(1,"#1A0B2E");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle="#8A2BE244";ctx.lineWidth=1;for(let i=0;i<W;i+=60){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke();}
+    ctx.strokeStyle="#8A2BE2";ctx.lineWidth=4;ctx.strokeRect(20,20,W-40,H-40);
+    let lx=W/2;const lh=56,tw=all.filter(Boolean).reduce((a,i)=>a+(i?Math.round((i.width/i.height)*lh):0)+12,0)-12;lx-=tw/2;
+    all.filter(Boolean).forEach((img,i)=>{if(!img)return;const lw=Math.round((img.width/img.height)*lh);ctx.drawImage(img,lx,40,lw,lh);lx+=lw+12;});
+    ctx.textAlign="center";ctx.fillStyle="#FFFFFF";ctx.font="bold 64px Impact";ctx.fillText("CERTIFICATE",W/2,160);
+    ctx.fillStyle="#8A2BE2";ctx.font="14px 'Courier New'";ctx.fillText("OF COMPLETION",W/2,190);
+    ctx.fillStyle="#AA88FF";ctx.font="italic 14px Georgia";ctx.fillText("This verifies that",W/2,240);
+    ctx.shadowColor="#8A2BE2";ctx.shadowBlur=15;ctx.fillStyle="#FFFFFF";ctx.font="bold 48px Georgia";ctx.fillText(name,W/2,290);ctx.shadowBlur=0;
+    ctx.fillStyle="#AA88FF";ctx.font="italic 14px Georgia";ctx.fillText("has participated in",W/2,330);
+    ctx.fillStyle="#8A2BE2";ctx.font="bold 28px Georgia";ctx.fillText(evName,W/2,370);
+    ctx.font="11px 'Courier New'";ctx.fillStyle="#AA88FF";extras.forEach(([k,v],i)=>ctx.fillText(`${k}: ${v}`,W/2,400+i*16));
+    const ey=420+extras.length*16;ctx.fillStyle="#554477";ctx.font="10px 'Courier New'";ctx.fillText(`${issued}  ·  ID: ${certId}`,W/2,ey);
+    if(sigs.length>0) drawSignatures(ctx,sigs,W,H,sigImgs,"dark");
+    ctx.fillStyle="#8A2BE2";ctx.fillRect(0,H-20,W,20);ctx.fillStyle="#000";ctx.font="bold 10px 'Courier New'";ctx.fillText(`VERIFY: ZEROCERT.APP — ${certId}`,W/2,H-6);
+  }
+  else if (tmpl === "vintage") {
+    ctx.fillStyle="#FDF5E6";ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle="#8B4513";ctx.lineWidth=12;ctx.strokeRect(16,16,W-32,H-32);ctx.lineWidth=2;ctx.strokeRect(32,32,W-64,H-64);
+    let lx=W/2;const lh=60,tw=all.filter(Boolean).reduce((a,i)=>a+(i?Math.round((i.width/i.height)*lh):0)+16,0)-16;lx-=tw/2;
+    all.filter(Boolean).forEach((img,i)=>{if(!img)return;const lw=Math.round((img.width/img.height)*lh);ctx.drawImage(img,lx,50,lw,lh);lx+=lw+16;});
+    ctx.textAlign="center";ctx.fillStyle="#8B4513";ctx.font="bold 56px Georgia";ctx.fillText("CERTIFICATE",W/2,180);
+    ctx.fillStyle="#A0522D";ctx.font="italic 22px Georgia";ctx.fillText("of Achievement",W/2,215);
+    ctx.beginPath();ctx.moveTo(W/2-100,230);ctx.lineTo(W/2+100,230);ctx.stroke();
+    ctx.fillStyle="#8B4513";ctx.font="italic 16px Georgia";ctx.fillText("This honors",W/2,270);
+    ctx.fillStyle="#000000";ctx.font="bold 46px Georgia";ctx.fillText(name,W/2,325);
+    ctx.fillStyle="#8B4513";ctx.font="italic 16px Georgia";ctx.fillText("for excellence in",W/2,370);
+    ctx.fillStyle="#000000";ctx.font="bold 26px Georgia";ctx.fillText(evName,W/2,410);
+    ctx.font="12px Georgia";ctx.fillStyle="#8B4513";extras.forEach(([k,v],i)=>ctx.fillText(`${k}: ${v}`,W/2,440+i*18));
+    const ey=460+extras.length*18;ctx.fillStyle="#A0522D";ctx.font="11px Georgia";ctx.fillText(`Date: ${issued}  |  Ref: ${certId}`,W/2,ey);
+    if(sigs.length>0) drawSignatures(ctx,sigs,W,H,sigImgs,"classic");
+    ctx.fillStyle="#8B4513";ctx.font="10px Georgia";ctx.fillText(`Verified digitally at zerocert.app`,W/2,H-40);
+  }
 }
 
 function CertCanvas({ cert, onReady }) {
@@ -524,7 +606,7 @@ function SignatoryEditor({ sig, onSave, onCancel }) {
 function Landing({ nav }) {
   const features = [
     ["⬡","SHA-256 Hashing","Every certificate cryptographically fingerprinted on issue"],
-    ["⬡","6 Visual Templates","Classic · Dark · Neon · Minimal · Brutalist · RetroWave"],
+    ["⬡","9 Visual Templates","Classic · Dark · Neon · Minimal · Brutalist · RetroWave · Corporate · Midnight · Vintage"],
     ["⬡","Multi-Org Logos","Joint events show all community logos side-by-side"],
     ["⬡","Signature Authority","Add 1–5 signatories with drawn, typed or uploaded sigs"],
     ["⬡","Bulk CSV Engine","Upload CSV, issue 10,000 certs, watch each row go live"],
@@ -650,6 +732,7 @@ function Dashboard({ nav, adminKey, setAdminKey }) {
   const orgEmails=Object.values(emails).filter(e=>e.orgKey===adminKey);
   const openRate=orgEmails.length?Math.round(orgEmails.filter(e=>e.opened).length/orgEmails.length*100):0;
   const [copied,setCopied]=useState(null);
+  const [resendKey,setResendKey]=useState(db.get("resendKey",""));
   const copyLink=eid=>{navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?event=${eid}`);setCopied(eid);setTimeout(()=>setCopied(null),2000);};
   if(!org)return <div style={{padding:80,textAlign:"center",fontFamily:MONO}}><Btn onClick={()=>nav("adminLogin")}>← Login</Btn></div>;
   return (
@@ -661,9 +744,15 @@ function Dashboard({ nav, adminKey, setAdminKey }) {
             <div style={{fontFamily:DISP,fontSize:56,lineHeight:.9,color:C.text}}>{org.name.toUpperCase()}</div>
             <div style={{fontFamily:MONO,fontSize:9,color:C.muted,marginTop:8,letterSpacing:1}}>KEY: {adminKey}</div>
           </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            <Btn v="sec" onClick={()=>nav("bulkIssue")}>Bulk Issue</Btn>
-            <Btn onClick={()=>nav("createEvent")}>+ New Event</Btn>
+          <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <Btn v="sec" onClick={()=>nav("bulkIssue")}>Bulk Issue</Btn>
+              <Btn onClick={()=>nav("createEvent")}>+ New Event</Btn>
+            </div>
+            <div style={{marginTop:12,display:"flex",gap:8,alignItems:"center",background:C.surface,padding:"6px 12px",border:`1px solid ${C.border}`}}>
+              <div style={{fontFamily:MONO,fontSize:9,color:C.muted}}>Resend API Key:</div>
+              <input type="password" value={resendKey} onChange={e=>{setResendKey(e.target.value);db.set("resendKey",e.target.value);}} placeholder="re_..." style={{width:140,background:"#000",border:`1px solid ${C.border}`,color:C.text,padding:"4px 8px",fontFamily:MONO,fontSize:10,outline:"none"}} />
+            </div>
           </div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:C.border,marginBottom:32}}>
@@ -896,7 +985,14 @@ function EventPage({ nav, adminKey, setAdminKey, eventId }) {
     const serial=event.serialPrefix?`${event.serialPrefix}-${String(evData._certSerial).padStart(3,"0")}`:"ZC-"+uid();
     const issuedAt=new Date().toISOString();const hash=await sha256(JSON.stringify({serial,eventId,issuedAt,fields:formData}));
     const cert={certId:serial,serialNumber:serial,eventId,eventName:event.name,orgName:org.name,orgKey:event.orgKey,orgLogos:logos,orgLogo:logos[0]||null,issuedAt,fields:formData,hash,status:"active",btcProof:"pending",template:event.template||"classic",signatories:event.signatories||[],expiryDate:event.expiry||null};
-    const certs=db.get("certs",{});certs[serial]=cert;db.set("certs",certs);setIssuedId(serial);setLoading(false);
+    const certs=db.get("certs",{});certs[serial]=cert;db.set("certs",certs);
+    // Auto-send email to recipient
+    if(formData["Email"]?.trim()){
+      sendCertEmail({to:formData["Email"].trim(),name:formData["Name"]?.trim()||"Recipient",certId:serial,eventName:event.name,orgName:org.name,issuedAt}).catch(()=>{});
+      const emailRec={certId:serial,to:formData["Email"].trim(),name:formData["Name"]?.trim(),subject:injectVars(DEFAULT_SUBJECT,formData,serial,issuedAt,event.name,org.name),sentAt:issuedAt,status:"sent",opened:false,clicked:false,eventId,orgKey:event.orgKey};
+      const emails=db.get("emails",{});emails[serial]=emailRec;db.set("emails",emails);
+    }
+    setIssuedId(serial);setLoading(false);
   };
   return (
     <div><NavBar nav={nav} adminKey={adminKey} setAdminKey={setAdminKey} />
@@ -936,7 +1032,8 @@ function CertResult({ nav, adminKey, setAdminKey, certId }) {
   const cert=db.get("certs",{})[certId];const [canvas,setCanvas]=useState(null);const [copied,setCopied]=useState(false);const [imgSrc,setImgSrc]=useState(null);
   const onReady=c=>{setCanvas(c);try{setImgSrc(c.toDataURL("image/png"));}catch(e){}};
   if(!cert)return <div style={{padding:80,textAlign:"center",fontFamily:MONO,color:C.muted}}>Certificate not found.</div>;
-  const download=()=>{if(canvas)downloadCanvas(canvas,`${cert.certId}.png`);};
+  const downloadPng=()=>{if(canvas)downloadCanvas(canvas,`${cert.certId}.png`);};
+  const downloadPdf=()=>{if(canvas)downloadPDF(canvas,`${cert.certId}.pdf`);};
   const verifyUrl=`${window.location.origin}${window.location.pathname}?verify=${cert.certId}`;
   return (
     <div><NavBar nav={nav} adminKey={adminKey} setAdminKey={setAdminKey} />
@@ -952,7 +1049,8 @@ function CertResult({ nav, adminKey, setAdminKey, certId }) {
         {/* Fallback image for right-click save */}
         {imgSrc&&<div style={{fontFamily:MONO,fontSize:8,color:C.muted,marginTop:4,marginBottom:12}}>Right-click image above → "Save Image As" also works if button fails.</div>}
         <div style={{display:"flex",gap:10,marginTop:4,marginBottom:24,flexWrap:"wrap"}}>
-          <Btn onClick={download} style={{fontSize:13}}>⬇ Download PNG</Btn>
+          <Btn onClick={downloadPdf} style={{fontSize:13}}>⬇ Download PDF</Btn>
+          <Btn onClick={downloadPng} v="sec" style={{fontSize:13}}>⬇ Download PNG</Btn>
           <Btn v="sec" onClick={()=>{navigator.clipboard.writeText(verifyUrl);setCopied(true);setTimeout(()=>setCopied(false),2000);}}>{copied?"✓ Copied!":"Copy Verify Link"}</Btn>
           <Btn v="ghost" onClick={()=>nav("verify")}>Open Verify Page</Btn>
         </div>
@@ -1034,7 +1132,9 @@ function BulkIssue({ nav, adminKey, setAdminKey }) {
       const logos=event?.coLogos?.length?event.coLogos:event?.logo?[event.logo]:[];
       const cert={certId:serial,serialNumber:serial,eventId:selEvent,eventName:event.name,orgName:org.name,orgKey:adminKey,orgLogos:logos,orgLogo:logos[0]||null,issuedAt,fields:row.data,hash,status:"active",btcProof:"pending",template:event.template||"classic",signatories:event.signatories||[],expiryDate:event.expiry||null};
       const certs=db.get("certs",{});certs[serial]=cert;db.set("certs",certs);
-      const isBounced=Math.random()<0.05;const emailRec={certId:serial,to:row.data.Email?.trim(),name:row.data.Name?.trim(),subject:injectVars(subject,row.data,serial,issuedAt,event.name,org.name),sentAt:issuedAt,status:isBounced?"bounced":"sent",opened:!isBounced&&Math.random()>0.5,clicked:!isBounced&&Math.random()>0.74,eventId:selEvent,orgKey:adminKey};
+      // Send real email via Resend API
+      const emailResult=await sendCertEmail({to:row.data.Email?.trim(),name:row.data.Name?.trim()||"Recipient",certId:serial,eventName:event.name,orgName:org.name,issuedAt,subject:injectVars(subject,row.data,serial,issuedAt,event.name,org.name),body:injectVars(row.data["Custom Message"]||body,row.data,serial,issuedAt,event.name,org.name)});
+      const isBounced=!emailResult.ok;const emailRec={certId:serial,to:row.data.Email?.trim(),name:row.data.Name?.trim(),subject:injectVars(subject,row.data,serial,issuedAt,event.name,org.name),sentAt:issuedAt,status:isBounced?"bounced":"sent",opened:false,clicked:false,eventId:selEvent,orgKey:adminKey};
       const emails=db.get("emails",{});emails[serial]=emailRec;db.set("emails",emails);
       setRows(prev=>prev.map(r=>r.idx===row.idx?{...r,status:isBounced?"bounced":"sent",certId:serial}:r));setSent(p=>p+1);}setSending(false);setDone(true);};
   const validRows=rows.filter(r=>r.valid);const errRows=rows.filter(r=>!r.valid);const checkedCount=rows.filter(r=>checked[r.idx]).length;const sentCount=rows.filter(r=>r.status==="sent").length;const bouncedCount=rows.filter(r=>r.status==="bounced").length;
