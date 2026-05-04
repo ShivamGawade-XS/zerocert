@@ -10,9 +10,24 @@ const uid   = () => Date.now().toString(36).toUpperCase() + Math.random().toStri
 const sleep  = ms => new Promise(r => setTimeout(r, ms));
 const db = {
   get: (k,fb=null) => { try { return JSON.parse(localStorage.getItem("zc_"+k)) ?? fb; } catch { return fb; } },
-  set: (k,v) => localStorage.setItem("zc_"+k, JSON.stringify(v)),
+  set: (k,v) => { try { localStorage.setItem("zc_"+k, JSON.stringify(v)); } catch(e) { if(e.name==="QuotaExceededError"||e.name==="NS_ERROR_DOM_QUOTA_REACHED") alert("Storage limit reached! The images/logos are too large. Please use smaller images or clear browser data."); throw e; } },
 };
-const readFileB64 = f => new Promise(res => { const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(f); });
+const readFileB64 = f => new Promise(res => {
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=400;let w=img.width,h=img.height;
+      if(w>max||h>max){if(w>h){h*=max/w;w=max;}else{w*=max/h;h=max;}}
+      const c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      res(c.toDataURL("image/png", 0.8));
+    };
+    img.onerror=()=>res(e.target.result);
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(f);
+});
 const loadImg     = src => new Promise(res => { const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src; });
 const downloadCanvas = (canvas, filename) => {
   canvas.toBlob(blob => {
@@ -710,7 +725,7 @@ function CreateEvent({ nav, adminKey, setAdminKey }) {
   const STEPS=["Details","Branding","Template","Fields","Signatories","Review"];
   const addLogos=async files=>{const n=await Promise.all(Array.from(files).map(readFileB64));setCoLogos(p=>[...p,...n].slice(0,5));};
   const addField=()=>{const f=newField.trim();if(f&&!fields.includes(f)){setFields(p=>[...p,f]);setNewField("");}};
-  const save=()=>{const eid=uid();const evs=db.get("events",{});evs[eid]={name,date,desc,logo:coLogos[0]||null,coLogos,fields,orgKey:adminKey,expiry,template,signatories,serialPrefix,createdAt:new Date().toISOString(),_certSerial:0};db.set("events",evs);nav("eventPage",eid);};
+  const save=()=>{try{const eid=uid();const evs=db.get("events",{});evs[eid]={name,date,desc,logo:coLogos[0]||null,coLogos,fields,orgKey:adminKey,expiry,template,signatories,serialPrefix,createdAt:new Date().toISOString(),_certSerial:0};db.set("events",evs);nav("eventPage",eid);}catch(e){console.error(e);}};
   const org=db.get("orgs",{})[adminKey];
   const prev={certId:serialPrefix?(serialPrefix+"-001"):"ZC-PREVIEW",eventName:name||"Event Name",orgName:org?.name||"Org",orgLogos:coLogos,issuedAt:new Date().toISOString(),fields:{Name:"Rahul Sharma",Email:"rahul@example.com"},hash:"a".repeat(64),status:"active",template,signatories,expiryDate:expiry||null};
 
