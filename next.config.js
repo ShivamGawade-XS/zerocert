@@ -4,8 +4,6 @@ const cspHeader = `default-src 'self'; script-src 'self' 'unsafe-inline'${isProd
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  outputFileTracing: false,
-  output: 'standalone',
   async headers() {
     return [
       {
