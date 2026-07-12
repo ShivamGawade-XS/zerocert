@@ -134,6 +134,12 @@ export async function POST(req: NextRequest) {
         : JSON.stringify(event.signatories);
     }
 
+    // Freeze custom theme data for the custom SVG template
+    if (event.bg_image) normalizedFields['bg_image'] = event.bg_image;
+    if (event.bg_color) normalizedFields['bg_color'] = event.bg_color;
+    if (event.text_color) normalizedFields['text_color'] = event.text_color;
+    if (event.accent_color) normalizedFields['accent_color'] = event.accent_color;
+
     // 3. Check for existing claim to prevent duplicates
     const { data: existingCert } = await supabaseAdmin
       .from('certs')
@@ -228,8 +234,10 @@ export async function POST(req: NextRequest) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
-      const emailSubject = injectVars(DEFAULT_SUBJECT, normalizedFields, certId, issuedAt, event.name, event.orgs.name);
-      const emailBody = injectVars(DEFAULT_BODY, normalizedFields, certId, issuedAt, event.name, event.orgs.name);
+      const subjectTpl = event.email_subject || DEFAULT_SUBJECT;
+      const bodyTpl = event.email_body || DEFAULT_BODY;
+      const emailSubject = injectVars(subjectTpl, normalizedFields, certId, issuedAt, event.name, event.orgs.name);
+      const emailBody = injectVars(bodyTpl, normalizedFields, certId, issuedAt, event.name, event.orgs.name);
 
       resend.emails
         .send({

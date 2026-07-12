@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import NavBar from '@/components/layout/NavBar';
-import { CertCanvas, CertCanvasRef } from '@/components/canvas/CertCanvas';
+import { CertSVG, CertSVGRef } from '@/components/canvas/CertSVG';
 
 interface EventData {
   id: string;
@@ -40,7 +40,7 @@ export default function ClaimPage() {
   const [cert, setCert] = useState<ClaimedCert | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const certCanvasRef = useRef<CertCanvasRef>(null);
+  const certCanvasRef = useRef<CertSVGRef>(null);
 
   useEffect(() => {
     fetch(`/api/events/${eventId}`)
@@ -128,7 +128,7 @@ export default function ClaimPage() {
 
           {/* Certificate Canvas Preview */}
           <div className="w-full max-w-2xl mb-8 shadow-2xl shadow-black/40">
-            <CertCanvas
+            <CertSVG
               ref={certCanvasRef}
               cert={fullCert as any}
               eventName={event.name}

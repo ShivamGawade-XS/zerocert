@@ -14,6 +14,10 @@ const eventCreateSchema = z.object({
   formFields: z.array(z.string()).default(['Name', 'Email']),
   coLogos: z.array(z.string()).default([]),
   signatories: z.array(z.any()).default([]),
+  bgImage: z.string().optional().nullable(),
+  bgColor: z.string().optional().nullable(),
+  textColor: z.string().optional().nullable(),
+  accentColor: z.string().optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -38,6 +42,10 @@ export async function POST(req: NextRequest) {
     const formFields = parsed.data.formFields;
     const coLogos = parsed.data.coLogos;
     const signatories = parsed.data.signatories;
+    const bgImage = parsed.data.bgImage || null;
+    const bgColor = parsed.data.bgColor || '#FFFFFF';
+    const textColor = parsed.data.textColor || '#111111';
+    const accentColor = parsed.data.accentColor || '#B8922A';
 
     const { data: event, error } = await supabaseAdmin
       .from('events')
@@ -52,6 +60,10 @@ export async function POST(req: NextRequest) {
         form_fields: formFields,
         co_logos: coLogos,
         signatories,
+        bg_image: bgImage,
+        bg_color: bgColor,
+        text_color: textColor,
+        accent_color: accentColor,
         cert_count: 0,
       })
       .select('*')

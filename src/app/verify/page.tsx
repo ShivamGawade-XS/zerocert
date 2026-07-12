@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import NavBar from '@/components/layout/NavBar';
-import { CertCanvas, CertCanvasRef } from '@/components/canvas/CertCanvas';
+import { CertSVG, CertSVGRef } from '@/components/canvas/CertSVG';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -11,7 +11,7 @@ function VerifyContent() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const certCanvasRef = useRef<CertCanvasRef>(null);
+  const certCanvasRef = useRef<CertSVGRef>(null);
 
   const performLookup = async (id: string) => {
     if (!id.trim()) return;
@@ -83,12 +83,13 @@ function VerifyContent() {
       )}
 
       {result && (
+        <>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Visual Certificate Preview (Col-span 7) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="text-[10px] text-muted tracking-widest uppercase">Visual Representation</div>
             <div className="shadow-2xl shadow-black/40">
-              <CertCanvas
+              <CertSVG
                 ref={certCanvasRef}
                 cert={result}
                 eventName={result.events?.name || ''}
@@ -186,6 +187,38 @@ function VerifyContent() {
             )}
           </div>
         </div>
+
+        {/* JSON-LD Structured Data for SEO / Google indexing */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'EducationalOccupationalCredential',
+              name: `Certificate of Completion — ${result.events?.name || 'Event'}`,
+              description: `Digital certificate issued to ${result.fields?.Name || 'Recipient'} for ${result.events?.name || 'event'} by ${result.orgs?.name || 'Organization'}`,
+              credentialCategory: 'certificate',
+              dateCreated: result.issued_at,
+              recognizedBy: {
+                '@type': 'Organization',
+                name: result.orgs?.name || 'ZeroCert',
+                url: typeof window !== 'undefined' ? window.location.origin : '',
+              },
+              about: {
+                '@type': 'EducationEvent',
+                name: result.events?.name || '',
+                startDate: result.events?.date || '',
+              },
+              identifier: {
+                '@type': 'PropertyValue',
+                propertyID: 'CertificateID',
+                value: result.cert_id,
+              },
+              url: typeof window !== 'undefined' ? window.location.href : '',
+            }),
+          }}
+        />
+        </>
       )}
     </div>
   );
