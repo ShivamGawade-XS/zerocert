@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/layout/NavBar';
-import { useAuthStore } from '@/store/auth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface EventSummary {
   id: string;
@@ -16,21 +16,10 @@ interface EventSummary {
 }
 
 export default function DashboardPage() {
-  const { org, setOrg, isLoading } = useAuthStore();
+  const { org, isLoading } = useRequireAuth();
   const router = useRouter();
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [fetching, setFetching] = useState(true);
-
-  // Ensure authenticated
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : Promise.reject('unauth')))
-      .then((data) => {
-        if (data.authenticated && data.org) setOrg(data.org);
-        else router.push('/login');
-      })
-      .catch(() => router.push('/login'));
-  }, [setOrg, router]);
 
   // Fetch events
   const fetchEvents = useCallback(async () => {

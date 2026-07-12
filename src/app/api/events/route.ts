@@ -13,11 +13,17 @@ const eventCreateSchema = z.object({
   expiryDate: z.string().optional().nullable(),
   formFields: z.array(z.string()).default(['Name', 'Email']),
   coLogos: z.array(z.string()).default([]),
-  signatories: z.array(z.any()).default([]),
+  signatories: z.array(z.object({
+    name: z.string(),
+    title: z.string().optional(),
+    signatureUrl: z.string().optional(),
+  })).default([]),
   bgImage: z.string().optional().nullable(),
   bgColor: z.string().optional().nullable(),
   textColor: z.string().optional().nullable(),
   accentColor: z.string().optional().nullable(),
+  emailSubject: z.string().max(200).optional().nullable(),
+  emailBody: z.string().max(5000).optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -46,6 +52,8 @@ export async function POST(req: NextRequest) {
     const bgColor = parsed.data.bgColor || '#FFFFFF';
     const textColor = parsed.data.textColor || '#111111';
     const accentColor = parsed.data.accentColor || '#B8922A';
+    const emailSubject = parsed.data.emailSubject || null;
+    const emailBody = parsed.data.emailBody || null;
 
     const { data: event, error } = await supabaseAdmin
       .from('events')
@@ -64,6 +72,8 @@ export async function POST(req: NextRequest) {
         bg_color: bgColor,
         text_color: textColor,
         accent_color: accentColor,
+        email_subject: emailSubject,
+        email_body: emailBody,
         cert_count: 0,
       })
       .select('*')

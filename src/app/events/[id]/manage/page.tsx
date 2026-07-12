@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/layout/NavBar';
-import { useAuthStore } from '@/store/auth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface EventData {
   id: string;
@@ -30,24 +30,13 @@ export default function EventManagePage() {
   const params = useParams();
   const eventId = params.id as string;
   const router = useRouter();
-  const { org, setOrg } = useAuthStore();
+  const { org, isLoading } = useRequireAuth();
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [certs, setCerts] = useState<CertData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-
-  // Authenticate user
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => {
-        if (d.authenticated && d.org) setOrg(d.org);
-        else router.push('/login');
-      })
-      .catch(() => router.push('/login'));
-  }, [setOrg, router]);
 
   // Fetch Event & Certs details
   const loadData = useCallback(async () => {
@@ -122,7 +111,7 @@ export default function EventManagePage() {
     }
   };
 
-  if (!org || loading) {
+  if (isLoading || !org || loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <NavBar />

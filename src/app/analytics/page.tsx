@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/layout/NavBar';
-import { useAuthStore } from '@/store/auth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface AnalyticsData {
   totalCerts: number;
@@ -17,17 +17,9 @@ interface AnalyticsData {
 const BAR_MAX_HEIGHT = 64;
 
 export default function AnalyticsPage() {
-  const { org, setOrg } = useAuthStore();
-  const router = useRouter();
+  const { org, isLoading } = useRequireAuth();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => { if (d.authenticated && d.org) setOrg(d.org); else router.push('/login'); })
-      .catch(() => router.push('/login'));
-  }, [setOrg, router]);
 
   useEffect(() => {
     if (!org) return;
@@ -37,7 +29,7 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [org]);
 
-  if (!org || loading) {
+  if (isLoading || !org || loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <NavBar />

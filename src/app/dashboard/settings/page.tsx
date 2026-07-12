@@ -1,19 +1,30 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import NavBar from '@/components/layout/NavBar';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAuthStore } from '@/store/auth';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import NavBar from '@/components/layout/NavBar';
 
 export default function SettingsPage() {
-  const { org, setOrg } = useAuthStore();
+  const { org, isLoading } = useRequireAuth();
+  const { setOrg } = useAuthStore();
   const router = useRouter();
 
   // Basic Profile states
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  // Sync state when org loads
+  useEffect(() => {
+    if (org) {
+      setName(org.name);
+      setSlug(org.slug);
+      setLogoUrl(org.logo_url);
+    }
+  }, [org]);
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -28,23 +39,6 @@ export default function SettingsPage() {
   const [passwordMessage, setPasswordMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Authenticate user & load initial state
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => {
-        if (data.authenticated && data.org) {
-          setOrg(data.org);
-          setName(data.org.name);
-          setSlug(data.org.slug);
-          setLogoUrl(data.org.logo_url);
-        } else {
-          router.push('/login');
-        }
-      })
-      .catch(() => router.push('/login'));
-  }, [setOrg, router]);
 
   // Handle logo file upload
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,7 +127,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (!org) {
+  if (isLoading || !org) {
     return (
       <div className="flex flex-col min-h-screen">
         <NavBar />
