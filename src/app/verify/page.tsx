@@ -201,7 +201,7 @@ function VerifyContent() {
               dateCreated: result.issued_at,
               recognizedBy: {
                 '@type': 'Organization',
-                name: result.orgs?.name || 'ZeroCert',
+                name: result.orgs?.name || 'CertXchange',
                 url: typeof window !== 'undefined' ? window.location.origin : '',
               },
               about: {

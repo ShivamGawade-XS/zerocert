@@ -152,7 +152,7 @@ export function drawDarkSVG({ cert, eventName, orgName, logoUrls, sigImgs }: SVG
       {/* Verify bottom bar */}
       <rect x="0" y="668" width="960" height="32" fill="#E8FF00" fillOpacity="0.1" />
       <text x="480" y="688" fill="#E8FF00" fillOpacity="0.4" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-        VERIFY: ZEROCERT.APP/VERIFY — {certId}
+        VERIFY: CERTXCHANGE.IN/VERIFY — {certId}
       </text>
 
       {/* Organization logos */}

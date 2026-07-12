@@ -13,10 +13,16 @@ interface CertCanvasEditorProps {
   setCustomAccentColor: (c: string) => void;
   titleY: number;
   setTitleY: (y: number) => void;
+  titleX: number;
+  setTitleX: (x: number) => void;
   nameY: number;
   setNameY: (y: number) => void;
+  nameX: number;
+  setNameX: (x: number) => void;
   eventY: number;
   setEventY: (y: number) => void;
+  eventX: number;
+  setEventX: (x: number) => void;
   sigsY: number;
   setSigsY: (y: number) => void;
   titleSize: number;
@@ -43,10 +49,16 @@ export default function CertCanvasEditor({
   setCustomAccentColor,
   titleY,
   setTitleY,
+  titleX,
+  setTitleX,
   nameY,
   setNameY,
+  nameX,
+  setNameX,
   eventY,
   setEventY,
+  eventX,
+  setEventX,
   sigsY,
   setSigsY,
   titleSize,
@@ -62,7 +74,6 @@ export default function CertCanvasEditor({
   customBgPreview,
 }: CertCanvasEditorProps) {
 
-  // Dummy certificate object to trigger custom SVG drawing
   const mockCert: any = {
     cert_id: 'ZC-PREVIEW',
     sha256_hash: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
@@ -74,8 +85,11 @@ export default function CertCanvasEditor({
       bg_color: JSON.stringify({
         bgColor: customBgColor,
         titleY,
+        titleX,
         nameY,
+        nameX,
         eventY,
+        eventX,
         sigsY,
         titleSize,
         nameSize,
@@ -101,204 +115,159 @@ export default function CertCanvasEditor({
     [null]
   );
 
+  const SliderRow = ({
+    label,
+    value,
+    min,
+    max,
+    onChange,
+    unit = 'px',
+  }: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    onChange: (v: number) => void;
+    unit?: string;
+  }) => (
+    <div>
+      <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
+        <span>{label}</span>
+        <span className="text-accent">{value}{unit}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full h-1 rounded cursor-pointer"
+        style={{ accentColor: customAccentColor || '#B8922A' }}
+      />
+    </div>
+  );
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-surface border border-border p-6 rounded-lg animate-fadeIn">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-surface border border-border p-6 rounded-lg">
       {/* Sidebar Controls */}
-      <div className="lg:col-span-4 space-y-6">
+      <div className="lg:col-span-4 space-y-5 overflow-y-auto max-h-[760px] pr-1">
         <div>
-          <div className="text-accent text-[9px] tracking-widest uppercase font-mono mb-1">Canvas Tool</div>
-          <h3 className="font-display text-base text-text uppercase tracking-wider font-bold">Element Customizer</h3>
+          <div className="text-accent text-[9px] tracking-widest uppercase font-mono mb-0.5">Canvas Tool</div>
+          <h3 className="font-display text-sm text-text uppercase tracking-wider font-bold">Element Customizer</h3>
         </div>
 
-        {/* Aspect Ratio Selector */}
-        <div className="space-y-2">
-          <label className="block text-[10px] text-muted tracking-widest uppercase font-bold">Canvas Ratio / Template Size</label>
-          <select 
+        {/* Canvas Size */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-2">
+          <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Canvas Ratio</div>
+          <select
             value={`${canvasWidth}x${canvasHeight}`}
             onChange={(e) => {
               const [w, h] = e.target.value.split('x').map(Number);
+              const rh = h / canvasHeight;
+              const rw = w / canvasWidth;
               setCanvasWidth(w);
               setCanvasHeight(h);
-              // Auto-scale vertical alignment positions proportionately to fit new height
-              const ratio = h / canvasHeight;
-              setTitleY(Math.round(titleY * ratio));
-              setNameY(Math.round(nameY * ratio));
-              setEventY(Math.round(eventY * ratio));
-              setSigsY(Math.round(sigsY * ratio));
+              setTitleY(Math.round(titleY * rh));
+              setNameY(Math.round(nameY * rh));
+              setEventY(Math.round(eventY * rh));
+              setSigsY(Math.round(sigsY * rh));
+              setTitleX(Math.round(titleX * rw));
+              setNameX(Math.round(nameX * rw));
+              setEventX(Math.round(eventX * rw));
             }}
-            className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none rounded cursor-pointer"
+            className="w-full font-mono text-[10px] p-2 bg-surface border border-border focus:border-accent text-text outline-none rounded cursor-pointer"
           >
-            <option value="960x700">Standard Landscape (1.37:1)</option>
-            <option value="1414x1000">A4 Landscape (1.41:1)</option>
-            <option value="1294x1000">US Letter Landscape (1.29:1)</option>
-            <option value="1000x1000">Square (1:1)</option>
+            <option value="960x700">Standard Landscape (960×700)</option>
+            <option value="1414x1000">A4 Landscape (1414×1000)</option>
+            <option value="1294x1000">US Letter Landscape (1294×1000)</option>
+            <option value="1000x1000">Square (1000×1000)</option>
           </select>
         </div>
 
-        {/* Color controls */}
-        <div className="space-y-4">
-          <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Palette</div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="block text-[8px] text-muted uppercase mb-1">Background</label>
-              <input
-                type="color"
-                value={customBgColor}
-                onChange={(e) => setCustomBgColor(e.target.value)}
-                className="w-full h-8 rounded border border-border cursor-pointer bg-bg"
-              />
+        {/* Colors */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-3">
+          <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Colour Palette</div>
+          {[
+            { label: 'Background', value: customBgColor, set: setCustomBgColor },
+            { label: 'Primary Text', value: customTextColor, set: setCustomTextColor },
+            { label: 'Accent Theme', value: customAccentColor, set: setCustomAccentColor },
+          ].map((cp) => (
+            <div key={cp.label} className="flex items-center gap-2">
+              <input type="color" value={cp.value} onChange={(e) => cp.set(e.target.value)}
+                className="w-8 h-8 rounded border border-border cursor-pointer flex-shrink-0 bg-bg" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[8px] text-muted uppercase tracking-wider mb-0.5">{cp.label}</div>
+                <input type="text" value={cp.value} onChange={(e) => cp.set(e.target.value)}
+                  className="w-full font-mono text-[10px] p-1.5 bg-surface border border-border text-text outline-none rounded" />
+              </div>
             </div>
-            <div>
-              <label className="block text-[8px] text-muted uppercase mb-1">Primary Text</label>
-              <input
-                type="color"
-                value={customTextColor}
-                onChange={(e) => setCustomTextColor(e.target.value)}
-                className="w-full h-8 rounded border border-border cursor-pointer bg-bg"
-              />
-            </div>
-            <div>
-              <label className="block text-[8px] text-muted uppercase mb-1">Accent Theme</label>
-              <input
-                type="color"
-                value={customAccentColor}
-                onChange={(e) => setCustomAccentColor(e.target.value)}
-                className="w-full h-8 rounded border border-border cursor-pointer bg-bg"
-              />
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Sliders for Positions (Y Coordinates) */}
-        <div className="space-y-4">
-          <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Vertical Alignment (Y)</div>
-          
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Title position</span>
-              <span>{titleY}px</span>
-            </div>
-            <input
-              type="range"
-              min={Math.round(canvasHeight * 0.08)}
-              max={Math.round(canvasHeight * 0.4)}
-              value={titleY}
-              onChange={(e) => setTitleY(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
+        {/* Title block */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+            <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Title / Certificate Type</div>
           </div>
-
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Recipient name position</span>
-              <span>{nameY}px</span>
-            </div>
-            <input
-              type="range"
-              min={Math.round(canvasHeight * 0.25)}
-              max={Math.round(canvasHeight * 0.65)}
-              value={nameY}
-              onChange={(e) => setNameY(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Event details position</span>
-              <span>{eventY}px</span>
-            </div>
-            <input
-              type="range"
-              min={Math.round(canvasHeight * 0.45)}
-              max={Math.round(canvasHeight * 0.82)}
-              value={eventY}
-              onChange={(e) => setEventY(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Signature blocks position</span>
-              <span>{sigsY}px</span>
-            </div>
-            <input
-              type="range"
-              min={Math.round(canvasHeight * 0.68)}
-              max={Math.round(canvasHeight * 0.94)}
-              value={sigsY}
-              onChange={(e) => setSigsY(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
-          </div>
+          <SliderRow label="Horizontal (X)" value={titleX} min={0} max={canvasWidth} onChange={setTitleX} />
+          <SliderRow label="Vertical (Y)" value={titleY} min={60} max={Math.round(canvasHeight * 0.5)} onChange={setTitleY} />
+          <SliderRow label="Font Size" value={titleSize} min={12} max={36} onChange={setTitleSize} />
         </div>
 
-        {/* Sliders for Font Sizes */}
-        <div className="space-y-4">
-          <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Font Sizing</div>
-
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Title font size</span>
-              <span>{titleSize}px</span>
-            </div>
-            <input
-              type="range"
-              min="14"
-              max="36"
-              value={titleSize}
-              onChange={(e) => setTitleSize(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
+        {/* Name block */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+            <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Recipient Name</div>
           </div>
+          <SliderRow label="Horizontal (X)" value={nameX} min={0} max={canvasWidth} onChange={setNameX} />
+          <SliderRow label="Vertical (Y)" value={nameY} min={100} max={Math.round(canvasHeight * 0.75)} onChange={setNameY} />
+          <SliderRow label="Font Size" value={nameSize} min={28} max={76} onChange={setNameSize} />
+        </div>
 
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Recipient font size</span>
-              <span>{nameSize}px</span>
-            </div>
-            <input
-              type="range"
-              min="36"
-              max="76"
-              value={nameSize}
-              onChange={(e) => setNameSize(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
+        {/* Event block */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+            <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Event Details</div>
           </div>
+          <SliderRow label="Horizontal (X)" value={eventX} min={0} max={canvasWidth} onChange={setEventX} />
+          <SliderRow label="Vertical (Y)" value={eventY} min={150} max={Math.round(canvasHeight * 0.88)} onChange={setEventY} />
+          <SliderRow label="Font Size" value={eventSize} min={16} max={42} onChange={setEventSize} />
+        </div>
 
-          <div>
-            <div className="flex justify-between text-[9px] font-mono text-muted mb-1">
-              <span>Event font size</span>
-              <span>{eventSize}px</span>
-            </div>
-            <input
-              type="range"
-              min="18"
-              max="42"
-              value={eventSize}
-              onChange={(e) => setEventSize(Number(e.target.value))}
-              className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
-            />
+        {/* Signatures block */}
+        <div className="p-3 bg-bg border border-border rounded-lg space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
+            <div className="text-[10px] text-muted tracking-widest uppercase font-bold">Signature Area</div>
           </div>
+          <SliderRow label="Vertical (Y)" value={sigsY} min={Math.round(canvasHeight * 0.55)} max={Math.round(canvasHeight * 0.96)} onChange={setSigsY} />
         </div>
       </div>
 
-      {/* Main Canvas Area */}
-      <div className="lg:col-span-8 flex flex-col justify-center bg-[#0C0C0C] border border-border p-4 rounded-lg">
+      {/* Canvas */}
+      <div className="lg:col-span-8 flex flex-col bg-[#0A0A0A] border border-border p-4 rounded-lg">
         <div className="text-[9px] font-mono text-muted uppercase tracking-widest mb-2 flex items-center justify-between">
-          <span>Live Editor Workspace</span>
-          <span className="text-accent">{canvasWidth} x {canvasHeight} Dynamic Viewbox</span>
+          <span className="flex items-center gap-3">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" /> Title</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> Name</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> Event</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> Sigs</span>
+          </span>
+          <span className="text-accent font-bold">{canvasWidth} × {canvasHeight}</span>
         </div>
-        <div 
-          className="w-full rounded overflow-hidden shadow-lg border border-border/50 transition-all duration-300"
+
+        <div
+          className="w-full rounded overflow-hidden shadow-lg border border-border/50"
           style={{ aspectRatio: `${canvasWidth} / ${canvasHeight}` }}
         >
           {svgPreview}
         </div>
-        <div className="mt-3 text-[9px] font-mono text-muted text-center animate-pulse">
-          ⚡ Canvas aspect ratio and all layout coordinate ranges adapt dynamically to the selection.
+
+        <div className="mt-2 text-[8px] font-mono text-muted text-center">
+          ⚡ All adjustments reflect instantly · Colour, position &amp; size sliders update the live SVG canvas above
         </div>
       </div>
     </div>

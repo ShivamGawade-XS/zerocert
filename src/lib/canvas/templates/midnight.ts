@@ -98,5 +98,5 @@ export function drawMidnight(
   // Footer link
   ctx.fillStyle = '#4A4A6A';
   ctx.font = '9px var(--font-ibm-plex-mono), Courier New';
-  ctx.fillText(`Verify validity at: zerocert.app/verify/${certId}`, CERT_W / 2, CERT_H - 24);
+  ctx.fillText(`Verify validity at: certxchange.vercel.app/verify?id=${certId}`, CERT_W / 2, CERT_H - 24);
 }

@@ -115,7 +115,7 @@ export function drawMidnightSVG({ cert, eventName, orgName, logoUrls, sigImgs }:
         <circle cx="0" cy="0" r="36" fill="none" stroke="#6633BB" strokeWidth="0.5" strokeDasharray="4 4" />
         <text x="0" y="-8" fill="#9B5CFF" fontSize="7" fontFamily="monospace" fontWeight="bold" textAnchor="middle">MIDNIGHT</text>
         <text x="0" y="4" fill="#9B5CFF" fontSize="7" fontFamily="monospace" fontWeight="bold" textAnchor="middle">VERIFIED</text>
-        <text x="0" y="16" fill="#552288" fontSize="6" fontFamily="monospace" textAnchor="middle">ZEROCERT</text>
+        <text x="0" y="16" fill="#552288" fontSize="6" fontFamily="monospace" textAnchor="middle">CERTXCHANGE</text>
       </g>
 
       <text x="480" y="688" fill="#331144" fontSize="8" fontFamily="monospace" textAnchor="middle">Verify at certxchange.vercel.app/verify — {certId}</text>

@@ -42,7 +42,7 @@ export function drawCorpSVG({ cert, eventName, orgName, logoUrls, sigImgs }: SVG
       {/* Top right blockchain badge */}
       <rect x="740" y="28" width="188" height="64" fill="#FFFFFF" opacity="0.1" rx="2" />
       <text x="834" y="54" fill="#FFFFFF" fontSize="9" fontFamily="monospace" textAnchor="middle" letterSpacing="1">BLOCKCHAIN VERIFIED</text>
-      <text x="834" y="68" fill="#89B4E8" fontSize="8" fontFamily="monospace" textAnchor="middle">◆ ZEROCERT PROTOCOL ◆</text>
+      <text x="834" y="68" fill="#89B4E8" fontSize="8" fontFamily="monospace" textAnchor="middle">◆ CERTXCHANGE PROTOCOL ◆</text>
       <text x="834" y="82" fill="#FFFFFF" fontSize="7" fontFamily="monospace" textAnchor="middle" opacity="0.7">{certId}</text>
 
       {/* Certificate title */}

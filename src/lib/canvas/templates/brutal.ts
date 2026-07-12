@@ -43,7 +43,7 @@ export function drawBrutal(
   
   ctx.fillStyle = '#888';
   ctx.font = "10px 'Courier New'";
-  ctx.fillText('ZEROCERT.APP', CERT_W - 22, 70);
+  ctx.fillText('CERTXCHANGE.IN', CERT_W - 22, 70);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#000';
@@ -86,5 +86,5 @@ export function drawBrutal(
 
   ctx.fillStyle = '#F5F500';
   ctx.font = "bold 10px 'Courier New'";
-  ctx.fillText(`VERIFY: ZEROCERT.APP — ${certId}`, CERT_W / 2, CERT_H - 26);
+  ctx.fillText(`VERIFY: CERTXCHANGE.IN — ${certId}`, CERT_W / 2, CERT_H - 26);
 }

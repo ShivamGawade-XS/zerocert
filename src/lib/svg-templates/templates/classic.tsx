@@ -59,7 +59,7 @@ export function drawClassicSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
 
       {/* Top Right Label */}
       <text x="912" y="82" fill="#E8FF00" fontSize="10" fontWeight="600" fontFamily="monospace" textAnchor="end">
-        ZEROCERT · BLOCKCHAIN VERIFIED
+        CERTXCHANGE · BLOCKCHAIN VERIFIED
       </text>
 
       {/* Certificate Title */}
@@ -146,12 +146,12 @@ export function drawClassicSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
         <circle cx="0" cy="0" r="52" fill="#0A0A1C" stroke="#E8FF00" strokeWidth="2" />
         <text x="0" y="-8" fill="#E8FF00" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">BLOCKCHAIN</text>
         <text x="0" y="4" fill="#E8FF00" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">ANCHORED</text>
-        <text x="0" y="16" fill="#888888" fontSize="7" fontFamily="monospace" textAnchor="middle">ZEROCERT</text>
+        <text x="0" y="16" fill="#888888" fontSize="7" fontFamily="monospace" textAnchor="middle">CERTXCHANGE</text>
       </g>
 
       <line x1="80" y1="672" x2="880" y2="672" stroke="#DDDDDD" strokeWidth="0.5" />
       <text x="480" y="688" fill="#999999" fontSize="8" fontFamily="monospace" textAnchor="middle">
-        Verify at zerocert.app/verify — {certId}
+        Verify at certxchange.vercel.app/verify — {certId}
       </text>
 
       {/* Organization logos */}

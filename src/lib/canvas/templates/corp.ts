@@ -91,5 +91,5 @@ export function drawCorp(
   // Small verify footer link
   ctx.fillStyle = '#888';
   ctx.font = '8px var(--font-ibm-plex-mono), Courier New';
-  ctx.fillText(`Secure verification link: zerocert.app/verify/${certId}`, 80, CERT_H - 24);
+  ctx.fillText(`Secure verification link: certxchange.vercel.app/verify?id=${certId}`, 80, CERT_H - 24);
 }

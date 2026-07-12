@@ -77,8 +77,11 @@ export default function CreateEventPage() {
   const [customBgImage, setCustomBgImage] = useState<string | null>(null);
   const [customBgPreview, setCustomBgPreview] = useState<string | null>(null);
   const [titleY, setTitleY] = useState(180);
+  const [titleX, setTitleX] = useState(480);
   const [nameY, setNameY] = useState(324);
+  const [nameX, setNameX] = useState(480);
   const [eventY, setEventY] = useState(416);
+  const [eventX, setEventX] = useState(480);
   const [sigsY, setSigsY] = useState(560);
   const [titleSize, setTitleSize] = useState(20);
   const [nameSize, setNameSize] = useState(52);
@@ -170,13 +173,20 @@ export default function CreateEventPage() {
     return data.url;
   };
 
-  // ── BG Image Upload ─────────────────────────────────────────────────────
+  // ── BG Image Upload (upload to storage, store URL) ────────────────────
   const handleBgUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const base64 = await fileToBase64(file);
-    setCustomBgImage(base64);
-    setCustomBgPreview(base64);
+    setError(null);
+    try {
+      const base64Preview = await fileToBase64(file);
+      setCustomBgPreview(base64Preview);
+      // Upload to get permanent URL for storage
+      const url = await uploadFile(file);
+      setCustomBgImage(url);
+    } catch (err: any) {
+      setError('Background upload failed: ' + err.message);
+    }
   }, []);
 
   // ── AI Theme Extraction ─────────────────────────────────────────────────
@@ -188,26 +198,50 @@ export default function CreateEventPage() {
     setError(null);
     try {
       const base64 = await fileToBase64(file);
-      setCustomBgImage(base64);
-      setCustomBgPreview(base64);
+      setCustomBgPreview(base64); // local preview only
+      // Try AI server first
       let theme: { bgColor: string; textColor: string; accentColor: string; styleName: string } | null = null;
       try {
-        const res = await fetch('/api/ai/theme', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: base64 }) });
-        const data = await res.json();
-        if (data.success && data.theme) theme = data.theme;
-      } catch { /* fallback */ }
+        const res = await fetch('/api/ai/theme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64 }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.theme) theme = data.theme;
+        }
+      } catch { /* network error, fall through to local */ }
+
+      // Client-side canvas color extraction fallback
       if (!theme) {
         const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(new Error('Failed to load image')); img.src = base64; });
-        theme = extractThemeFromImage(img);
+        // data: URLs don't need CORS — do NOT set crossOrigin for them
+        await new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // resolve anyway, will use defaults
+          img.src = base64;
+        });
+        try {
+          theme = extractThemeFromImage(img);
+        } catch {
+          theme = { bgColor: '#1A1A2E', textColor: '#FFFFFF', accentColor: '#9B5CFF', styleName: 'Deep Space' };
+        }
       }
+
       if (theme) {
         setCustomBgColor(theme.bgColor);
         setCustomTextColor(theme.textColor);
         setCustomAccentColor(theme.accentColor);
         setAiStyleName(theme.styleName || 'AI-Generated Theme');
       }
+
+      // Also upload the bg image to storage
+      try {
+        const url = await uploadFile(file);
+        setCustomBgImage(url);
+      } catch { /* non-critical, canvas still works with preview */ }
+
     } catch (err: any) {
       setError('AI extraction failed: ' + (err.message || 'Unknown error'));
     } finally {
@@ -270,8 +304,11 @@ export default function CreateEventPage() {
         payload.bgColor = JSON.stringify({
           bgColor: customBgColor,
           titleY,
+          titleX,
           nameY,
+          nameX,
           eventY,
+          eventX,
           sigsY,
           titleSize,
           nameSize,
@@ -304,8 +341,11 @@ export default function CreateEventPage() {
         bg_color: JSON.stringify({
           bgColor: customBgColor,
           titleY,
+          titleX,
           nameY,
+          nameX,
           eventY,
+          eventX,
           sigsY,
           titleSize,
           nameSize,
@@ -493,10 +533,16 @@ export default function CreateEventPage() {
                   setCustomAccentColor={setCustomAccentColor}
                   titleY={titleY}
                   setTitleY={setTitleY}
+                  titleX={titleX}
+                  setTitleX={setTitleX}
                   nameY={nameY}
                   setNameY={setNameY}
+                  nameX={nameX}
+                  setNameX={setNameX}
                   eventY={eventY}
                   setEventY={setEventY}
+                  eventX={eventX}
+                  setEventX={setEventX}
                   sigsY={sigsY}
                   setSigsY={setSigsY}
                   titleSize={titleSize}

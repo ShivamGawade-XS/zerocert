@@ -54,7 +54,7 @@ export function drawNeon(
   
   ctx.fillStyle = '#FF00FF';
   ctx.font = "9px 'Courier New'";
-  ctx.fillText('BLOCKCHAIN_VERIFIED :: ZEROCERT', CERT_W - 32, 70);
+  ctx.fillText('BLOCKCHAIN_VERIFIED :: CERTXCHANGE', CERT_W - 32, 70);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#FF00FF';
@@ -123,5 +123,5 @@ export function drawNeon(
   
   ctx.fillStyle = '#000';
   ctx.font = "9px 'Courier New'";
-  ctx.fillText(`VERIFY // ZEROCERT.APP // ${certId}`, CERT_W / 2, CERT_H - 10);
+  ctx.fillText(`VERIFY // CERTXCHANGE.IN // ${certId}`, CERT_W / 2, CERT_H - 10);
 }

@@ -93,7 +93,7 @@ export function drawVintageSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
         <circle cx="0" cy="0" r="40" fill="none" stroke="#C4933F" strokeWidth="1" opacity="0.6" />
         <text x="0" y="-8" fill="#EED8A0" fontSize="8" fontFamily="Georgia, serif" fontWeight="bold" textAnchor="middle">OFFICIAL</text>
         <text x="0" y="6" fill="#EED8A0" fontSize="8" fontFamily="Georgia, serif" fontWeight="bold" textAnchor="middle">SEAL</text>
-        <text x="0" y="20" fill="#C4933F" fontSize="7" fontFamily="monospace" textAnchor="middle">ZEROCERT</text>
+        <text x="0" y="20" fill="#C4933F" fontSize="7" fontFamily="monospace" textAnchor="middle">CERTXCHANGE</text>
       </g>
 
       {/* Signatures */}

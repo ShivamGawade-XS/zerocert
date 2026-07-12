@@ -39,7 +39,7 @@ export function drawBrutalSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
       <rect x="760" y="20" width="160" height="70" fill="#F5F500" />
       <text x="840" y="52" fill="#111111" fontSize="9" fontWeight="900" fontFamily="monospace" textAnchor="middle" letterSpacing="1">BLOCKCHAIN</text>
       <text x="840" y="66" fill="#111111" fontSize="9" fontWeight="900" fontFamily="monospace" textAnchor="middle" letterSpacing="1">VERIFIED</text>
-      <text x="840" y="80" fill="#111111" fontSize="7" fontFamily="monospace" textAnchor="middle">◆ ZEROCERT ◆</text>
+      <text x="840" y="80" fill="#111111" fontSize="7" fontFamily="monospace" textAnchor="middle">◆ CERTXCHANGE ◆</text>
 
       {/* CERTIFICATE heading */}
       <text x="42" y="200" fill="#111111" fontSize="76" fontWeight="900" fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="-2">CERT</text>

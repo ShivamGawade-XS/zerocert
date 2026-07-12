@@ -131,5 +131,5 @@ export function drawRetro(
   
   ctx.fillStyle = '#FFF';
   ctx.font = "9px 'Courier New'";
-  ctx.fillText(`VERIFY: ZEROCERT.APP/VERIFY — ${certId}`, CERT_W / 2, CERT_H - 8);
+  ctx.fillText(`VERIFY: CERTXCHANGE.IN/VERIFY — ${certId}`, CERT_W / 2, CERT_H - 8);
 }

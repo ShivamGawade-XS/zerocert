@@ -35,7 +35,7 @@ Warm regards,
 {{OrgName}} Team
 
 ──────────────────────────────────────────────
-Powered by ZeroCert · Blockchain-anchored certificates
+Powered by CertXchange · Blockchain-anchored certificates
 `;
 
 function injectVars(

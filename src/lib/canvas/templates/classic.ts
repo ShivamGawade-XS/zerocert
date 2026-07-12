@@ -63,7 +63,7 @@ export function drawClassic(
   ctx.fillStyle = '#E8FF00';
   ctx.font = "10px 'Courier New'";
   ctx.textAlign = 'right';
-  ctx.fillText('ZEROCERT · BLOCKCHAIN VERIFIED', CERT_W - 48, 32 + hH - 12);
+  ctx.fillText('CERTXCHANGE · BLOCKCHAIN VERIFIED', CERT_W - 48, 32 + hH - 12);
 
   const by = 32 + hH;
   ctx.textAlign = 'center';
@@ -145,5 +145,5 @@ export function drawClassic(
 
   ctx.fillStyle = '#BBB';
   ctx.font = "8px 'Courier New'";
-  ctx.fillText(`Verify at zerocert.app/verify — ${certId}`, CERT_W / 2, CERT_H - 14);
+  ctx.fillText(`Verify at certxchange.vercel.app/verify — ${certId}`, CERT_W / 2, CERT_H - 14);
 }

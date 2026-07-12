@@ -89,5 +89,5 @@ export function drawVintage(
   // Footer verify
   ctx.fillStyle = '#4A3B32';
   ctx.font = '8px var(--font-ibm-plex-mono), Courier New';
-  ctx.fillText(`Verification Registry: zerocert.app/verify/${certId}`, CERT_W / 2, CERT_H - 32);
+  ctx.fillText(`Verification Registry: certxchange.vercel.app/verify?id=${certId}`, CERT_W / 2, CERT_H - 32);
 }

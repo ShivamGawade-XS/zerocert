@@ -49,7 +49,7 @@ export function drawMinimalSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
         {orgName.toUpperCase()}
       </text>
       <text x="914" y="72" fill="#CCCCCC" fontSize="9" fontFamily="monospace" textAnchor="end">
-        ZEROCERT.APP
+        CERTXCHANGE.IN
       </text>
 
       {/* Certificate Title */}
@@ -129,7 +129,7 @@ export function drawMinimalSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
 
       <line x1="32" y1="656" x2="928" y2="656" stroke="#EBEBEB" strokeWidth="1" />
       <text x="480" y="672" fill="#CCCCCC" fontSize="8" fontFamily="monospace" textAnchor="middle">
-        VERIFY AT ZEROCERT.APP
+        VERIFY AT CERTXCHANGE.IN
       </text>
 
       {/* Organization logos */}

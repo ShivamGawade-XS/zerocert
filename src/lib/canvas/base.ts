@@ -131,6 +131,6 @@ export function drawSeal(ctx: CanvasRenderingContext2D, x: number, y: number): v
 
   ctx.fillStyle = '#888';
   ctx.font = `7px var(--font-ibm-plex-mono), 'Courier New'`;
-  ctx.fillText('ZEROCERT', x, y + 16);
+  ctx.fillText('CERTXCHANGE', x, y + 16);
   ctx.restore();
 }

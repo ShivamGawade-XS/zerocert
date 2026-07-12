@@ -37,7 +37,7 @@ export function drawMinimal(
   ctx.fillText(orgName.toUpperCase(), CERT_W - 46, 56);
   
   ctx.fillStyle = '#CCC';
-  ctx.fillText('ZEROCERT.APP', CERT_W - 46, 72);
+  ctx.fillText('CERTXCHANGE.IN', CERT_W - 46, 72);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#000';
@@ -93,5 +93,5 @@ export function drawMinimal(
   
   ctx.fillStyle = '#CCC';
   ctx.font = "8px 'Courier New'";
-  ctx.fillText(`VERIFY AT ZEROCERT.APP — ${certId}`, CERT_W / 2, CERT_H - 28);
+  ctx.fillText(`VERIFY AT CERTXCHANGE.IN — ${certId}`, CERT_W / 2, CERT_H - 28);
 }

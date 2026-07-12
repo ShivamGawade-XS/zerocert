@@ -98,5 +98,5 @@ export function drawDark(
   
   ctx.fillStyle = '#E8FF0066';
   ctx.font = "10px 'Courier New'";
-  ctx.fillText(`VERIFY: ZEROCERT.APP/VERIFY — ${certId}`, CERT_W / 2, CERT_H - 12);
+  ctx.fillText(`VERIFY: CERTXCHANGE.IN/VERIFY — ${certId}`, CERT_W / 2, CERT_H - 12);
 }
