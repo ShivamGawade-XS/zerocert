@@ -35,9 +35,15 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: 'ZeroCert 🔏 | Blockchain-Anchored Credentials',
-  description: 'Free, open, blockchain-anchored certificate platform for communities. Issue verifiable SHA-256 credentials for bootcamps, workshops, and events.',
-  keywords: ['certificates', 'blockchain', 'credentials', 'verifiable', 'communities', 'free'],
+  title: 'CertXchange — India\'s Trusted Credential Network',
+  description: 'Discover, verify, organize and showcase verified learning credentials. The trusted platform for free certificate discovery, skill validation, and learner passport portfolios.',
+  keywords: ['certificates', 'blockchain', 'credentials', 'learning', 'skills', 'portfolio', 'verification', 'roadmap', 'free courses', 'credential network', 'india'],
+  openGraph: {
+    title: 'CertXchange — India\'s Trusted Credential Network',
+    description: 'Discover, verify, organize and showcase verified learning credentials.',
+    siteName: 'CertXchange',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -54,7 +60,7 @@ export default function RootLayout({
         <div className="fixed inset-0 bg-[linear-gradient(rgba(26,26,50,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(26,26,50,0.6)_1px,transparent_1px)] bg-[size:52px_52px] pointer-events-none z-0 opacity-60" />
         
         {/* Top accent glow */}
-        <div className="fixed top-[-300px] left-1/2 -translate-x-1/2 w-[900px] height-[600px] bg-[radial-gradient(ellipse,rgba(232,255,0,0.06)_0%,transparent_65%)] pointer-events-none z-0" />
+        <div className="fixed top-[-300px] left-1/2 -translate-x-1/2 w-[900px] height-[600px] bg-[radial-gradient(ellipse,rgba(21,101,254,0.07)_0%,transparent_65%)] pointer-events-none z-0" />
         
         <ErrorBoundary>
           <Providers>

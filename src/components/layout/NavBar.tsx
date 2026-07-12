@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
+import { HorizontalLogo } from '@/components/brand/Logos';
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -19,6 +20,9 @@ export default function NavBar() {
 
   const navItems = [
     { label: 'Verify', href: '/verify' },
+    { label: 'Exchange', href: '/exchange' },
+    { label: 'Roadmaps', href: '/roadmaps' },
+    { label: 'Showcase', href: '/showcase' },
     ...(org
       ? [
           { label: 'Dashboard', href: '/dashboard' },
@@ -30,22 +34,21 @@ export default function NavBar() {
   ];
 
   return (
-    <nav className="px-6 md:px-8 border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-50 h-[56px] flex justify-between items-center select-none">
+    <nav className="px-6 md:px-8 border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-50 h-[64px] flex justify-between items-center select-none">
       {/* Brand logo */}
-      <Link href="/" onClick={() => setIsOpen(false)} className="font-display text-xl md:text-2xl text-accent tracking-widest flex items-center gap-2">
-        <span className="bg-accent text-black px-2 py-0.5 text-base md:text-lg font-bold">ZC</span>
-        <span className="text-text">ZEROCERT</span>
+      <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-2">
+        <HorizontalLogo width="130" height="52" className="text-accent" />
       </Link>
 
       {/* Desktop navigation */}
-      <div className="hidden md:flex gap-4 items-center h-full">
+      <div className="hidden xl:flex gap-2 items-center h-full">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`font-mono text-xs tracking-wider uppercase px-3 py-2 border-b-2 transition duration-150 ${
+              className={`font-mono text-[11px] tracking-wider uppercase px-2.5 py-2 border-b-2 transition duration-150 ${
                 isActive
                   ? 'border-accent text-text'
                   : 'border-transparent text-muted hover:text-text hover:border-borderHigh'
@@ -59,14 +62,14 @@ export default function NavBar() {
         {org ? (
           <button
             onClick={handleLogout}
-            className="ml-3 px-3 py-1.5 border border-err/30 hover:border-err text-err hover:bg-err/5 font-mono text-xs font-bold tracking-wider uppercase rounded transition duration-150"
+            className="ml-3 px-3 py-1.5 border border-err/30 hover:border-err text-err hover:bg-err/5 font-mono text-[10px] font-bold tracking-wider uppercase rounded transition duration-150"
           >
             Logout
           </button>
         ) : (
           <Link
             href="/login"
-            className="ml-3 px-3 py-1.5 bg-accent hover:bg-accentH text-black font-mono text-xs font-bold tracking-wider uppercase rounded transition duration-150"
+            className="ml-3 px-3 py-1.5 bg-accent hover:bg-accentH text-black font-mono text-[10px] font-bold tracking-wider uppercase rounded transition duration-150"
           >
             Admin →
           </Link>
@@ -76,7 +79,7 @@ export default function NavBar() {
       {/* Mobile Hamburger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden p-2 text-muted hover:text-text focus:outline-none"
+        className="xl:hidden p-2 text-muted hover:text-text focus:outline-none"
         aria-label="Toggle menu"
         aria-expanded={isOpen}
       >
@@ -91,7 +94,7 @@ export default function NavBar() {
 
       {/* Mobile Navigation Drawer */}
       {isOpen && (
-        <div className="absolute top-[56px] left-0 right-0 bg-bg border-b border-border p-5 flex flex-col gap-4 md:hidden animate-in fade-in slide-in-from-top-4 duration-150 z-50">
+        <div className="absolute top-[64px] left-0 right-0 bg-bg border-b border-border p-5 flex flex-col gap-3 xl:hidden animate-in fade-in slide-in-from-top-4 duration-150 z-50">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -99,7 +102,7 @@ export default function NavBar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`font-mono text-sm tracking-wider uppercase py-2 border-l-2 pl-3 transition ${
+                className={`font-mono text-xs tracking-wider uppercase py-2 border-l-2 pl-3 transition ${
                   isActive ? 'border-accent text-accent font-bold' : 'border-transparent text-muted'
                 }`}
               >
@@ -111,15 +114,15 @@ export default function NavBar() {
           {org ? (
             <button
               onClick={handleLogout}
-              className="w-full text-left py-2 border-l-2 border-transparent pl-3 text-err font-mono text-sm font-bold tracking-wider uppercase transition"
+              className="w-full text-left py-2 border-l-2 border-transparent pl-3 text-err font-mono text-xs font-bold tracking-wider uppercase transition"
             >
               Logout
             </button>
           ) : (
             <Link
-              href="/login"
               onClick={() => setIsOpen(false)}
-              className="w-full text-center py-2.5 bg-accent hover:bg-accentH text-black font-mono text-sm font-bold tracking-wider uppercase rounded transition"
+              href="/login"
+              className="w-full text-center py-2 bg-accent hover:bg-accentH text-black font-mono text-xs font-bold tracking-wider uppercase rounded transition"
             >
               Admin →
             </Link>
