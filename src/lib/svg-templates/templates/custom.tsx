@@ -57,55 +57,59 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
   const titleSize = parsedLayout.titleSize ?? 20;
   const nameSize = parsedLayout.nameSize ?? 52;
   const eventSize = parsedLayout.eventSize ?? 26;
+  
+  const canvasWidth = parsedLayout.canvasWidth ?? 960;
+  const canvasHeight = parsedLayout.canvasHeight ?? 700;
+  const centerX = canvasWidth / 2;
 
   return (
-    <svg width="100%" height="100%" viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" className="font-mono select-none">
+    <svg width="100%" height="100%" viewBox={`0 0 ${canvasWidth} ${canvasHeight}`} xmlns="http://www.w3.org/2000/svg" className="font-mono select-none">
       {/* Background color */}
-      <rect width="960" height="700" fill={finalBgColor} />
+      <rect width={canvasWidth} height={canvasHeight} fill={finalBgColor} />
 
       {/* Custom Background Image if uploaded */}
       {bgImg && (
-        <image href={bgImg} x="0" y="0" width="960" height="700" preserveAspectRatio="xMidYMid slice" />
+        <image href={bgImg} x="0" y="0" width={canvasWidth} height={canvasHeight} preserveAspectRatio="xMidYMid slice" />
       )}
 
       {/* Overlay text elements centered */}
       {/* Organization Name */}
-      <text x="480" y="110" fill={textColor} fontSize="14" fontWeight="bold" fontFamily="monospace" textAnchor="middle" letterSpacing="2" opacity="0.8">
+      <text x={centerX} y="110" fill={textColor} fontSize="14" fontWeight="bold" fontFamily="monospace" textAnchor="middle" letterSpacing="2" opacity="0.8">
         {orgName.toUpperCase()}
       </text>
 
-      <text x="480" y={titleY} fill={accentColor} fontSize={titleSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle" letterSpacing="4">
+      <text x={centerX} y={titleY} fill={accentColor} fontSize={titleSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle" letterSpacing="4">
         CERTIFICATE OF COMPLETION
       </text>
 
-      <text x="480" y={nameY - 74} fill={textColor} fontSize="16" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
+      <text x={centerX} y={nameY - 74} fill={textColor} fontSize="16" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
         This is proudly presented to
       </text>
 
       {/* Recipient Name */}
-      <text x="480" y={nameY} fill={textColor} fontSize={nameSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
+      <text x={centerX} y={nameY} fill={textColor} fontSize={nameSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
         {name}
       </text>
-      <line x1="300" y1={nameY + 16} x2="660" y2={nameY + 16} stroke={accentColor} strokeWidth="1" />
+      <line x1={centerX - 180} y1={nameY + 16} x2={centerX + 180} y2={nameY + 16} stroke={accentColor} strokeWidth="1" />
 
-      <text x="480" y={eventY - 36} fill={textColor} fontSize="15" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
+      <text x={centerX} y={eventY - 36} fill={textColor} fontSize="15" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
         for active participation in
       </text>
 
       {/* Event Name */}
-      <text x="480" y={eventY} fill={textColor} fontSize={eventSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
+      <text x={centerX} y={eventY} fill={textColor} fontSize={eventSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
         {eventName}
       </text>
 
       {/* Extra fields */}
       {extras.map(([k, v], idx) => (
-        <text key={k} x="480" y={eventY + 30 + idx * 16} fill={textColor} fontSize="10" fontFamily="monospace" textAnchor="middle" opacity="0.7">
+        <text key={k} x={centerX} y={eventY + 30 + idx * 16} fill={textColor} fontSize="10" fontFamily="monospace" textAnchor="middle" opacity="0.7">
           {k}: {String(v)}
         </text>
       ))}
 
       {/* Expiry / Verification details */}
-      <g transform={`translate(480, ${eventY + 84 + extras.length * 16})`} textAnchor="middle" fill={textColor} fontSize="10" fontFamily="monospace" opacity="0.7">
+      <g transform={`translate(${centerX}, ${eventY + 84 + extras.length * 16})`} textAnchor="middle" fill={textColor} fontSize="10" fontFamily="monospace" opacity="0.7">
         <text y="0">Issued On: {issued}</text>
         <text y="14">Verification ID: {certId}</text>
         <text y="26" fontSize="8" opacity="0.8">SHA-256: {hash.slice(0, 48)}…</text>
@@ -113,7 +117,7 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
 
       {/* Signatures */}
       {parsedSigs.map((sig, i) => {
-        const blockW = 840 / parsedSigs.length;
+        const blockW = (canvasWidth - 120) / parsedSigs.length;
         const bx = 60 + i * blockW;
         const cx = bx + blockW / 2;
         const sigImg = sigImgs[i];
@@ -147,7 +151,7 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
       })}
 
       {/* Verify bottom tag */}
-      <text x="480" y="684" fill={textColor} opacity="0.5" fontSize="8" fontFamily="monospace" textAnchor="middle">
+      <text x={centerX} y={canvasHeight - 16} fill={textColor} opacity="0.5" fontSize="8" fontFamily="monospace" textAnchor="middle">
         Verify at certxchange.vercel.app/verify?id={certId}
       </text>
 

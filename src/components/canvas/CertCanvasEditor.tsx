@@ -25,6 +25,10 @@ interface CertCanvasEditorProps {
   setNameSize: (s: number) => void;
   eventSize: number;
   setEventSize: (s: number) => void;
+  canvasWidth: number;
+  setCanvasWidth: (w: number) => void;
+  canvasHeight: number;
+  setCanvasHeight: (h: number) => void;
   customBgPreview: string | null;
 }
 
@@ -51,6 +55,10 @@ export default function CertCanvasEditor({
   setNameSize,
   eventSize,
   setEventSize,
+  canvasWidth,
+  setCanvasWidth,
+  canvasHeight,
+  setCanvasHeight,
   customBgPreview,
 }: CertCanvasEditorProps) {
 
@@ -72,6 +80,8 @@ export default function CertCanvasEditor({
         titleSize,
         nameSize,
         eventSize,
+        canvasWidth,
+        canvasHeight,
       }),
       text_color: customTextColor,
       accent_color: customAccentColor,
@@ -92,12 +102,37 @@ export default function CertCanvasEditor({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-surface border border-border p-6 rounded-lg">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-surface border border-border p-6 rounded-lg animate-fadeIn">
       {/* Sidebar Controls */}
       <div className="lg:col-span-4 space-y-6">
         <div>
           <div className="text-accent text-[9px] tracking-widest uppercase font-mono mb-1">Canvas Tool</div>
           <h3 className="font-display text-base text-text uppercase tracking-wider font-bold">Element Customizer</h3>
+        </div>
+
+        {/* Aspect Ratio Selector */}
+        <div className="space-y-2">
+          <label className="block text-[10px] text-muted tracking-widest uppercase font-bold">Canvas Ratio / Template Size</label>
+          <select 
+            value={`${canvasWidth}x${canvasHeight}`}
+            onChange={(e) => {
+              const [w, h] = e.target.value.split('x').map(Number);
+              setCanvasWidth(w);
+              setCanvasHeight(h);
+              // Auto-scale vertical alignment positions proportionately to fit new height
+              const ratio = h / canvasHeight;
+              setTitleY(Math.round(titleY * ratio));
+              setNameY(Math.round(nameY * ratio));
+              setEventY(Math.round(eventY * ratio));
+              setSigsY(Math.round(sigsY * ratio));
+            }}
+            className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none rounded cursor-pointer"
+          >
+            <option value="960x700">Standard Landscape (1.37:1)</option>
+            <option value="1414x1000">A4 Landscape (1.41:1)</option>
+            <option value="1294x1000">US Letter Landscape (1.29:1)</option>
+            <option value="1000x1000">Square (1:1)</option>
+          </select>
         </div>
 
         {/* Color controls */}
@@ -145,8 +180,8 @@ export default function CertCanvasEditor({
             </div>
             <input
               type="range"
-              min="80"
-              max="250"
+              min={Math.round(canvasHeight * 0.08)}
+              max={Math.round(canvasHeight * 0.4)}
               value={titleY}
               onChange={(e) => setTitleY(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -160,8 +195,8 @@ export default function CertCanvasEditor({
             </div>
             <input
               type="range"
-              min="200"
-              max="450"
+              min={Math.round(canvasHeight * 0.25)}
+              max={Math.round(canvasHeight * 0.65)}
               value={nameY}
               onChange={(e) => setNameY(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -175,8 +210,8 @@ export default function CertCanvasEditor({
             </div>
             <input
               type="range"
-              min="350"
-              max="520"
+              min={Math.round(canvasHeight * 0.45)}
+              max={Math.round(canvasHeight * 0.82)}
               value={eventY}
               onChange={(e) => setEventY(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -190,8 +225,8 @@ export default function CertCanvasEditor({
             </div>
             <input
               type="range"
-              min="480"
-              max="630"
+              min={Math.round(canvasHeight * 0.68)}
+              max={Math.round(canvasHeight * 0.94)}
               value={sigsY}
               onChange={(e) => setSigsY(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -211,7 +246,7 @@ export default function CertCanvasEditor({
             <input
               type="range"
               min="14"
-              max="32"
+              max="36"
               value={titleSize}
               onChange={(e) => setTitleSize(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -226,7 +261,7 @@ export default function CertCanvasEditor({
             <input
               type="range"
               min="36"
-              max="68"
+              max="76"
               value={nameSize}
               onChange={(e) => setNameSize(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -241,7 +276,7 @@ export default function CertCanvasEditor({
             <input
               type="range"
               min="18"
-              max="36"
+              max="42"
               value={eventSize}
               onChange={(e) => setEventSize(Number(e.target.value))}
               className="w-full accent-accent bg-bg h-1 rounded cursor-pointer"
@@ -254,13 +289,16 @@ export default function CertCanvasEditor({
       <div className="lg:col-span-8 flex flex-col justify-center bg-[#0C0C0C] border border-border p-4 rounded-lg">
         <div className="text-[9px] font-mono text-muted uppercase tracking-widest mb-2 flex items-center justify-between">
           <span>Live Editor Workspace</span>
-          <span className="text-accent">960 x 700 Vector SVG Workspace</span>
+          <span className="text-accent">{canvasWidth} x {canvasHeight} Dynamic Viewbox</span>
         </div>
-        <div className="w-full aspect-[960/700] rounded overflow-hidden shadow-lg border border-border/50">
+        <div 
+          className="w-full rounded overflow-hidden shadow-lg border border-border/50 transition-all duration-300"
+          style={{ aspectRatio: `${canvasWidth} / ${canvasHeight}` }}
+        >
           {svgPreview}
         </div>
-        <div className="mt-3 text-[9px] font-mono text-muted text-center">
-          💡 Elements shift vertically and scale in real-time as you adjust sliders in the customizer.
+        <div className="mt-3 text-[9px] font-mono text-muted text-center animate-pulse">
+          ⚡ Canvas aspect ratio and all layout coordinate ranges adapt dynamically to the selection.
         </div>
       </div>
     </div>

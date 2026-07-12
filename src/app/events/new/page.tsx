@@ -83,6 +83,8 @@ export default function CreateEventPage() {
   const [titleSize, setTitleSize] = useState(20);
   const [nameSize, setNameSize] = useState(52);
   const [eventSize, setEventSize] = useState(26);
+  const [canvasWidth, setCanvasWidth] = useState(960);
+  const [canvasHeight, setCanvasHeight] = useState(700);
   const [aiExtracting, setAiExtracting] = useState(false);
   const [aiStyleName, setAiStyleName] = useState<string | null>(null);
 
@@ -274,6 +276,8 @@ export default function CreateEventPage() {
           titleSize,
           nameSize,
           eventSize,
+          canvasWidth,
+          canvasHeight,
         });
         payload.textColor = customTextColor;
         payload.accentColor = customAccentColor;
@@ -306,6 +310,8 @@ export default function CreateEventPage() {
           titleSize,
           nameSize,
           eventSize,
+          canvasWidth,
+          canvasHeight,
         }),
         text_color: customTextColor,
         accent_color: customAccentColor,
@@ -499,6 +505,10 @@ export default function CreateEventPage() {
                   setNameSize={setNameSize}
                   eventSize={eventSize}
                   setEventSize={setEventSize}
+                  canvasWidth={canvasWidth}
+                  setCanvasWidth={setCanvasWidth}
+                  canvasHeight={canvasHeight}
+                  setCanvasHeight={setCanvasHeight}
                   customBgPreview={customBgPreview}
                 />
               </div>
