@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED.some((path) => pathname === path || pathname.startsWith(path));
   const isAuthPage = AUTH_PAGES.includes(pathname);
 
-  const token = req.cookies.get('zc_token')?.value;
+  const token = req.cookies.get('zc_session')?.value;
   let isAuthenticated = false;
 
   if (token) {

@@ -81,7 +81,7 @@ CREATE POLICY "Events are viewable by everyone" ON public.events
   FOR SELECT USING (true);
 
 CREATE POLICY "Events can be managed by their org owner" ON public.events
-  ALL USING (org_id IN (SELECT id FROM public.orgs WHERE owner_id = auth.uid() OR id = auth.uid()));
+  ALL USING (org_id IN (SELECT id FROM public.orgs WHERE id = auth.uid()));
 
 -- Certs RLS Policies
 CREATE POLICY "Certs are viewable by everyone" ON public.certs

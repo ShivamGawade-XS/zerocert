@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import NavBar from '@/components/layout/NavBar';
+import { CertCanvas, CertCanvasRef } from '@/components/canvas/CertCanvas';
 
 interface EventData {
   id: string;
@@ -13,9 +14,10 @@ interface EventData {
   serial_prefix: string | null;
   form_fields: string[];
   co_logos: string[];
+  signatories: any[];
   expiry_date: string | null;
   cert_count: number;
-  orgs?: { name: string };
+  orgs?: { name: string; logo_url?: string | null };
 }
 
 interface ClaimedCert {
@@ -23,6 +25,9 @@ interface ClaimedCert {
   sha256_hash: string;
   issued_at: string;
   fields: Record<string, string>;
+  status?: string;
+  event_id?: string;
+  org_id?: string;
 }
 
 export default function ClaimPage() {
@@ -35,6 +40,7 @@ export default function ClaimPage() {
   const [cert, setCert] = useState<ClaimedCert | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const certCanvasRef = useRef<CertCanvasRef>(null);
 
   useEffect(() => {
     fetch(`/api/events/${eventId}`)
@@ -100,41 +106,66 @@ export default function ClaimPage() {
     );
   }
 
-  if (cert) {
+  if (cert && event) {
+    const fullCert = {
+      ...cert,
+      status: 'active' as const,
+      event_id: eventId,
+      org_id: event.orgs?.logo_url || '',
+    };
+
     return (
       <div className="flex flex-col min-h-screen">
         <NavBar />
-        <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 z-10 max-w-xl mx-auto w-full">
-          <div className="text-ok text-4xl mb-4">✓</div>
-          <h1 className="font-display text-4xl text-text uppercase tracking-wider text-center mb-2">Certificate Issued!</h1>
-          <p className="text-xs text-mutedHigh text-center mb-8">
-            Your certificate has been issued and an email has been sent to <span className="text-accent">{cert.fields?.Email}</span>. 
-            A copy is also on its way to the Bitcoin blockchain for permanent proof.
+        <main className="flex-1 flex flex-col items-center px-6 py-12 z-10 max-w-4xl mx-auto w-full">
+          <div className="text-ok text-4xl mb-3">✓</div>
+          <h1 className="font-display text-4xl text-text uppercase tracking-wider text-center mb-1 animate-pulse">
+            Certificate Issued!
+          </h1>
+          <p className="text-xs text-mutedHigh text-center mb-8 max-w-lg">
+            Successfully generated. A cryptographically secured copy has been emailed to <span className="text-accent">{cert.fields?.Email}</span>.
           </p>
 
-          <div className="w-full border border-border bg-surface p-6 rounded space-y-4 mb-8">
-            <div className="flex justify-between">
-              <span className="text-[9px] text-muted uppercase tracking-wider">Certificate ID</span>
-              <span className="font-mono text-xs text-accent font-bold">{cert.cert_id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[9px] text-muted uppercase tracking-wider">Issued To</span>
-              <span className="font-mono text-xs text-text">{cert.fields?.Name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[9px] text-muted uppercase tracking-wider">SHA-256</span>
-              <span className="font-mono text-[10px] text-mutedHigh truncate ml-4 max-w-[200px]">{cert.sha256_hash.slice(0, 24)}…</span>
-            </div>
+          {/* Certificate Canvas Preview */}
+          <div className="w-full max-w-2xl mb-8 shadow-2xl shadow-black/40">
+            <CertCanvas
+              ref={certCanvasRef}
+              cert={fullCert as any}
+              eventName={event.name}
+              orgName={event.orgs?.name || ''}
+              orgLogoUrl={event.orgs?.logo_url}
+              coLogos={event.co_logos}
+              signatories={event.signatories}
+            />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <button onClick={copyVerifyLink}
-              className="flex-1 py-3 border border-border hover:border-accent text-text hover:text-accent font-mono text-[10px] font-bold tracking-widest uppercase rounded transition">
-              {copied ? '✓ Copied!' : 'Copy Verify Link'}
+          {/* Download & Verification Actions */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
+            <button
+              onClick={() => certCanvasRef.current?.downloadPNG()}
+              className="py-3 bg-surface border border-border hover:border-accent text-text hover:text-accent font-mono text-[10px] font-bold tracking-widest uppercase rounded transition text-center"
+            >
+              Download PNG
             </button>
-            <a href={`/verify?id=${cert.cert_id}`} target="_blank" rel="noopener noreferrer"
-              className="flex-1 py-3 bg-accent hover:bg-accentH text-black font-mono text-[10px] font-bold tracking-widest uppercase rounded transition text-center">
-              View Certificate →
+            <button
+              onClick={() => certCanvasRef.current?.downloadPDF()}
+              className="py-3 bg-surface border border-border hover:border-accent text-text hover:text-accent font-mono text-[10px] font-bold tracking-widest uppercase rounded transition text-center"
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={copyVerifyLink}
+              className="py-3 bg-surface border border-border hover:border-accent text-text hover:text-accent font-mono text-[10px] font-bold tracking-widest uppercase rounded transition text-center"
+            >
+              {copied ? '✓ Copied!' : 'Copy Link'}
+            </button>
+            <a
+              href={`/verify?id=${encodeURIComponent(cert.cert_id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-3 bg-accent hover:bg-accentH text-black font-mono text-[10px] font-bold tracking-widest uppercase rounded transition text-center"
+            >
+              Verify Detail →
             </a>
           </div>
         </main>

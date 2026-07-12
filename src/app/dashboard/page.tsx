@@ -86,7 +86,7 @@ export default function DashboardPage() {
           {[
             { label: 'Events', value: events.length, icon: '⬡', color: 'text-accent' },
             { label: 'Certificates', value: totalCerts, icon: '◆', color: 'text-ok' },
-            { label: 'Templates', value: [...new Set(events.map((e) => e.template))].length, icon: '▣', color: 'text-info' },
+            { label: 'Templates', value: new Set(events.map((e) => e.template)).size, icon: '▣', color: 'text-info' },
             { label: 'Active', value: events.filter((e) => e.cert_count > 0).length, icon: '●', color: 'text-purple' },
           ].map((stat) => (
             <div key={stat.label} className="bg-surface p-5 relative overflow-hidden">
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                       aria-label={`Copy claim link for ${ev.name}`}>
                       Copy Link
                     </button>
-                    <Link href={`/events/${ev.id}`}
+                    <Link href={`/events/${ev.id}/manage`}
                       className="px-3 py-1.5 border border-border hover:border-accent text-muted hover:text-accent text-[9px] font-bold tracking-widest uppercase rounded transition">
                       View →
                     </Link>

@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // OTS digest endpoint expects 32-byte binary SHA-256 digest
 const OTS_CALENDAR_URLS = [
   'https://alice.btc.calendar.opentimestamps.org/digest',

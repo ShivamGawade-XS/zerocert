@@ -126,6 +126,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Event not found or has been removed.' }, { status: 404 });
     }
 
+    // Freeze template and signatories into certificate fields for visual permanence
+    normalizedFields['Template'] = event.template || 'classic';
+    if (event.signatories) {
+      normalizedFields['Signatories'] = typeof event.signatories === 'string'
+        ? event.signatories
+        : JSON.stringify(event.signatories);
+    }
+
     // 3. Check for existing claim to prevent duplicates
     const { data: existingCert } = await supabaseAdmin
       .from('certs')
@@ -182,16 +190,7 @@ export async function POST(req: NextRequest) {
     };
     const sha256Hash = crypto.createHash('sha256').update(JSON.stringify(hashData)).digest('hex');
 
-    // 6. Submit to OpenTimestamps (asynchronous background submit)
-    let btcProof = 'pending';
-    try {
-      const proof = await submitToOTS(sha256Hash);
-      if (proof) btcProof = proof;
-    } catch (e) {
-      console.error('OTS submission error during claim:', e);
-    }
-
-    // 7. Save certificate to database
+    // 6. Save certificate to database (initially pending OTS proof)
     const { data: cert, error: certError } = await supabaseAdmin
       .from('certs')
       .insert({
@@ -200,7 +199,7 @@ export async function POST(req: NextRequest) {
         org_id: event.org_id,
         fields: normalizedFields,
         sha256_hash: sha256Hash,
-        btc_proof: btcProof,
+        btc_proof: 'pending',
         status: 'active',
         issued_at: issuedAt,
       })
@@ -210,6 +209,20 @@ export async function POST(req: NextRequest) {
     if (certError || !cert) {
       return NextResponse.json({ error: 'Failed to record certificate: ' + certError?.message }, { status: 500 });
     }
+
+    // 7. Submit to OpenTimestamps in the background (fire-and-forget)
+    submitToOTS(sha256Hash)
+      .then(async (proof) => {
+        if (proof) {
+          await supabaseAdmin
+            .from('certs')
+            .update({ btc_proof: proof })
+            .eq('cert_id', certId);
+        }
+      })
+      .catch((e) => {
+        console.error('OTS background submission error:', e);
+      });
 
     // 8. Queue Email via Resend in the background
     const resendApiKey = process.env.RESEND_API_KEY;
