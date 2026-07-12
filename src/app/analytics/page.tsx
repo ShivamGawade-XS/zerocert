@@ -76,19 +76,39 @@ export default function AnalyticsPage() {
           <div className="border border-border bg-surface p-6 rounded">
             <div className="text-[10px] text-muted tracking-widest uppercase mb-6">Certificates Issued (Last 30 Days)</div>
             {data?.dailyCerts && data.dailyCerts.length > 0 ? (
-              <div className="flex items-end gap-1 h-20">
-                {data.dailyCerts.map((d) => (
-                  <div key={d.date} className="flex-1 flex flex-col items-center justify-end group relative" title={`${d.date}: ${d.count}`}>
-                    <div className="absolute bottom-full mb-1 bg-surface border border-border text-[8px] font-mono text-accent px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
-                      {d.count}
+              <>
+                <div className="flex items-end gap-1 h-20" aria-hidden="true">
+                  {data.dailyCerts.map((d) => (
+                    <div key={d.date} className="flex-1 flex flex-col items-center justify-end group relative" title={`${d.date}: ${d.count}`}>
+                      <div className="absolute bottom-full mb-1 bg-surface border border-border text-[8px] font-mono text-accent px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
+                        {d.count}
+                      </div>
+                      <div
+                        className="w-full bg-accent/20 hover:bg-accent/60 transition rounded-t"
+                        style={{ height: `${(d.count / maxBar) * BAR_MAX_HEIGHT}px`, minHeight: d.count > 0 ? '3px' : '1px' }}
+                      />
                     </div>
-                    <div
-                      className="w-full bg-accent/20 hover:bg-accent/60 transition rounded-t"
-                      style={{ height: `${(d.count / maxBar) * BAR_MAX_HEIGHT}px`, minHeight: d.count > 0 ? '3px' : '1px' }}
-                    />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {/* Screen Reader Table */}
+                <table className="sr-only">
+                  <caption>Certificates Issued (Last 30 Days)</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Date</th>
+                      <th scope="col">Certificate Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.dailyCerts.map((d) => (
+                      <tr key={d.date}>
+                        <td>{d.date}</td>
+                        <td>{d.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
             ) : (
               <div className="text-xs text-muted text-center py-8">No data yet</div>
             )}
@@ -98,22 +118,42 @@ export default function AnalyticsPage() {
           <div className="border border-border bg-surface p-6 rounded">
             <div className="text-[10px] text-muted tracking-widest uppercase mb-6">Top Events by Certificate Count</div>
             {data?.topEvents && data.topEvents.length > 0 ? (
-              <div className="space-y-3">
-                {data.topEvents.map((ev, i) => {
-                  const pct = Math.max(5, Math.round((ev.cert_count / Math.max(...data.topEvents.map((x) => x.cert_count), 1)) * 100));
-                  return (
-                    <div key={ev.name}>
-                      <div className="flex justify-between text-[10px] mb-1.5">
-                        <span className="text-text font-mono truncate mr-3">{ev.name}</span>
-                        <span className="text-accent font-bold shrink-0">{ev.cert_count}</span>
+              <>
+                <div className="space-y-3" aria-hidden="true">
+                  {data.topEvents.map((ev, i) => {
+                    const pct = Math.max(5, Math.round((ev.cert_count / Math.max(...data.topEvents.map((x) => x.cert_count), 1)) * 100));
+                    return (
+                      <div key={ev.name}>
+                        <div className="flex justify-between text-[10px] mb-1.5">
+                          <span className="text-text font-mono truncate mr-3">{ev.name}</span>
+                          <span className="text-accent font-bold shrink-0">{ev.cert_count}</span>
+                        </div>
+                        <div className="h-1 bg-border rounded overflow-hidden">
+                          <div className="h-full bg-accent rounded transition-all" style={{ width: `${pct}%` }} />
+                        </div>
                       </div>
-                      <div className="h-1 bg-border rounded overflow-hidden">
-                        <div className="h-full bg-accent rounded transition-all" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                {/* Screen Reader Table */}
+                <table className="sr-only">
+                  <caption>Top Events by Certificate Count</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Event Name</th>
+                      <th scope="col">Certificate Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.topEvents.map((ev) => (
+                      <tr key={ev.name}>
+                        <td>{ev.name}</td>
+                        <td>{ev.cert_count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
             ) : (
               <div className="text-xs text-muted text-center py-8">No events yet</div>
             )}

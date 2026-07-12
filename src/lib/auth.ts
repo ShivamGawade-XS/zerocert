@@ -3,6 +3,10 @@ import * as jose from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from './supabase';
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('FATAL CONFIGURATION ERROR: JWT_SECRET environment variable is required in production.');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtsecretkeysupersecretjwtsecretkey';
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 const COOKIE_NAME = 'zc_session';

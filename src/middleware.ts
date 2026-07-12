@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PROTECTED = ['/dashboard', '/bulk-issue', '/analytics', '/events/new'];
+const PROTECTED = ['/dashboard', '/bulk-issue', '/analytics', '/events/new', '/events/'];
 const AUTH_PAGES = ['/login', '/register'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtected = PROTECTED.some((path) => pathname === path || pathname.startsWith(path));
+  // /events/[id]/manage needs auth, but /events/[id] (claim page) does not
+  const isManagePath = /^\/events\/[^/]+\/manage/.test(pathname);
+  const isProtected = isManagePath || PROTECTED.some((path) => pathname === path || pathname.startsWith(path + '/'));
+  const isClaimPage = /^\/events\/[^/]+$/.test(pathname); // Public claim page
   const isAuthPage = AUTH_PAGES.includes(pathname);
 
   const token = req.cookies.get('zc_session')?.value;
@@ -16,7 +19,7 @@ export async function middleware(req: NextRequest) {
 
   if (token) {
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev_secret');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'supersecretjwtsecretkeysupersecretjwtsecretkey');
       await jwtVerify(token, secret);
       isAuthenticated = true;
     } catch {
@@ -25,7 +28,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Redirect unauthenticated users away from protected pages
-  if (isProtected && !isAuthenticated) {
+  if (isProtected && !isClaimPage && !isAuthenticated) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
@@ -38,5 +41,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard', '/dashboard/:path*', '/bulk-issue', '/analytics', '/events/new', '/login', '/register'],
+  matcher: ['/dashboard', '/dashboard/:path*', '/bulk-issue', '/analytics', '/events/new', '/events/:path*/manage', '/login', '/register'],
 };
