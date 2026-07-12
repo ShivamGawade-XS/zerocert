@@ -30,13 +30,31 @@
 }
 
 @layer utilities {
+  /* CertXchange blue brand glows */
   .text-glow {
-    text-shadow: 0 0 10px rgba(232, 255, 0, 0.4);
+    text-shadow: 0 0 12px rgba(21, 101, 254, 0.5);
   }
   .accent-glow {
-    box-shadow: 0 0 20px rgba(232, 255, 0, 0.3);
+    box-shadow: 0 0 24px rgba(21, 101, 254, 0.35);
   }
   .border-glow {
-    box-shadow: 0 0 15px rgba(232, 255, 0, 0.1);
+    box-shadow: 0 0 16px rgba(21, 101, 254, 0.15);
   }
+
+  /* Skeleton shimmer animation */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.03) 0%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(255,255,255,0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }

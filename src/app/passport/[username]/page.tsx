@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import NavBar from '@/components/layout/NavBar';
+import { toast } from '@/lib/toast';
 
 interface Passport {
   username: string;
@@ -30,9 +31,21 @@ interface SkillGraphNode {
   level: number;
 }
 
+function computeBadges(credCount: number, skills: string[]): string[] {
+  const badges: string[] = [];
+  if (credCount >= 1) badges.push('🥉 First Certificate');
+  if (credCount >= 3) badges.push('🥈 Learning Streak');
+  if (credCount >= 5) badges.push('🥇 Certificate Champion');
+  if (credCount >= 10) badges.push('🏆 Legend');
+  if (skills.some((s) => s.toLowerCase().includes('python'))) badges.push('🐍 Pythonista');
+  if (skills.some((s) => ['sql', 'database', 'postgres'].some((k) => s.toLowerCase().includes(k)))) badges.push('🗄️ Data Expert');
+  if (skills.some((s) => ['cloud', 'aws', 'azure', 'gcp'].some((k) => s.toLowerCase().includes(k)))) badges.push('☁️ Cloud Native');
+  if (skills.some((s) => ['security', 'cybersecurity', 'pentest'].some((k) => s.toLowerCase().includes(k)))) badges.push('🛡️ Security Pro');
+  return badges.length > 0 ? badges : [];
+}
+
 export default function LearnerPassportPage() {
   const params = useParams();
-  const router = useRouter();
   const username = params.username as string;
 
   const [passport, setPassport] = useState<Passport | null>(null);
@@ -100,19 +113,46 @@ export default function LearnerPassportPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create passport');
 
+      toast('✓ Passport claimed! Your credential profile is now live.', 'success');
       loadPassport();
     } catch (err: any) {
       setCreateError(err.message);
+      toast(err.message || 'Failed to create passport', 'error');
     } finally {
       setCreating(false);
     }
   };
 
+  // Compute dynamic badges from credentials and skills
+  const dynamicBadges = passport
+    ? computeBadges(credentials.length, passport.skills || [])
+    : [];
+
+  // Merge skillGraph from DB with profile skills (as fallback nodes)
+  const displaySkillGraph: Array<{ skill: string; level: number }> =
+    skillGraph.length > 0
+      ? skillGraph
+      : (passport?.skills || []).map((s, i) => ({
+          skill: s,
+          level: Math.max(20, 85 - i * 10),
+        }));
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <NavBar />
-        <main className="flex-1 flex items-center justify-center font-mono text-xs text-muted">Retrieving passport credentials…</main>
+        <main className="flex-1 px-6 py-10 max-w-5xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-pulse">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="h-40 bg-border/30 rounded-xl" />
+              <div className="h-28 bg-border/30 rounded-xl" />
+              <div className="h-36 bg-border/30 rounded-xl" />
+            </div>
+            <div className="lg:col-span-7">
+              <div className="h-[500px] bg-border/30 rounded-xl" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -301,35 +341,41 @@ export default function LearnerPassportPage() {
                 <h2 className="font-display text-lg text-text uppercase tracking-wider mb-4 border-b border-border/40 pb-2">
                   Achievements
                 </h2>
-                <div className="flex flex-wrap gap-2">
-                  {passport.badges?.map((badge) => (
-                    <span
-                      key={badge}
-                      className="px-3 py-1.5 bg-surfaceHigh border border-border hover:border-accent text-text text-[10px] font-mono rounded-full font-bold uppercase tracking-wider transition duration-150"
-                    >
-                      {badge}
-                    </span>
-                  ))}
-                </div>
+                {dynamicBadges.length === 0 ? (
+                  <div className="text-center py-4 text-muted text-[10px] font-mono uppercase">
+                    Earn your first certificate to unlock badges!
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {dynamicBadges.map((badge) => (
+                      <span
+                        key={badge}
+                        className="px-3 py-1.5 bg-[#1565FE]/10 border border-[#1565FE]/30 hover:border-[#1565FE] text-[#1565FE] text-[10px] font-mono rounded-full font-bold uppercase tracking-wider transition duration-150"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Skill Graph */}
               <div className="border border-border bg-surface p-6 rounded-lg">
                 <h2 className="font-display text-lg text-text uppercase tracking-wider mb-4 border-b border-border/40 pb-2">
-                  Verified Skill Graph
+                  Skill Graph
                 </h2>
                 <div className="space-y-4">
-                  {skillGraph.length === 0 ? (
-                    <div className="text-center text-muted text-xs font-mono uppercase">Claim certificates to map skills</div>
+                  {displaySkillGraph.length === 0 ? (
+                    <div className="text-center py-4 text-muted text-xs font-mono uppercase">Add skills to your profile to map them here</div>
                   ) : (
-                    skillGraph.map((s) => (
+                    displaySkillGraph.map((s) => (
                       <div key={s.skill}>
                         <div className="flex justify-between text-[10px] font-mono mb-1">
                           <span className="text-muted">{s.skill}</span>
                           <span className="text-text font-bold">{s.level}%</span>
                         </div>
                         <div className="w-full bg-bg h-2 rounded-full overflow-hidden border border-border/50">
-                          <div className="bg-accent h-full" style={{ width: `${s.level}%` }} />
+                          <div className="bg-[#1565FE] h-full transition-all duration-500" style={{ width: `${s.level}%` }} />
                         </div>
                       </div>
                     ))
