@@ -113,13 +113,14 @@ export function drawClassicSVG({ cert, eventName, orgName, logoUrls, sigImgs }: 
         const cx = bx + blockW / 2;
         const sigImg = sigImgs[i];
 
+        const sigFont = sig.signatureFont || 'Great Vibes, cursive';
         return (
           <g key={i} transform="translate(0, 560)">
             {/* Signature image or typed */}
             {sigImg ? (
               <image href={sigImg} x={cx - 50} y="-30" width="100" height="36" preserveAspectRatio="xMidYMid meet" />
             ) : sig.signatureType === 'typed' && sig.signatureData ? (
-              <text x={cx} y="2" fill="#08081E" fontSize="22" fontStyle="italic" fontFamily="cursive" textAnchor="middle">
+              <text x={cx} y="2" fill="#08081E" fontSize="24" fontFamily={sigFont} textAnchor="middle">
                 {sig.signatureData}
               </text>
             ) : null}

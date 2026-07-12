@@ -35,14 +35,33 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
 
   // Extract custom background image, background color, and text color if provided
   const bgImg = cert.fields?.bg_image || cert.fields?.bgImage || null;
-  const bgColor = cert.fields?.bg_color || cert.fields?.bgColor || '#FFFFFF';
+  const bgColorRaw = cert.fields?.bg_color || cert.fields?.bgColor || '#FFFFFF';
   const textColor = cert.fields?.text_color || cert.fields?.textColor || '#111111';
   const accentColor = cert.fields?.accent_color || cert.fields?.accentColor || '#B8922A';
+
+  let parsedLayout: any = {};
+  let finalBgColor = bgColorRaw;
+  if (bgColorRaw.trim().startsWith('{')) {
+    try {
+      parsedLayout = JSON.parse(bgColorRaw);
+      finalBgColor = parsedLayout.bgColor || '#FFFFFF';
+    } catch (e) {
+      console.error('Failed to parse custom layout JSON:', e);
+    }
+  }
+
+  const titleY = parsedLayout.titleY ?? 180;
+  const nameY = parsedLayout.nameY ?? 324;
+  const eventY = parsedLayout.eventY ?? 416;
+  const sigsY = parsedLayout.sigsY ?? 560;
+  const titleSize = parsedLayout.titleSize ?? 20;
+  const nameSize = parsedLayout.nameSize ?? 52;
+  const eventSize = parsedLayout.eventSize ?? 26;
 
   return (
     <svg width="100%" height="100%" viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" className="font-mono select-none">
       {/* Background color */}
-      <rect width="960" height="700" fill={bgColor} />
+      <rect width="960" height="700" fill={finalBgColor} />
 
       {/* Custom Background Image if uploaded */}
       {bgImg && (
@@ -55,38 +74,38 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
         {orgName.toUpperCase()}
       </text>
 
-      <text x="480" y="180" fill={accentColor} fontSize="20" fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle" letterSpacing="4">
+      <text x="480" y={titleY} fill={accentColor} fontSize={titleSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle" letterSpacing="4">
         CERTIFICATE OF COMPLETION
       </text>
 
-      <text x="480" y="250" fill={textColor} fontSize="16" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
+      <text x="480" y={nameY - 74} fill={textColor} fontSize="16" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
         This is proudly presented to
       </text>
 
       {/* Recipient Name */}
-      <text x="480" y="324" fill={textColor} fontSize="52" fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
+      <text x="480" y={nameY} fill={textColor} fontSize={nameSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
         {name}
       </text>
-      <line x1="300" y1="340" x2="660" y2="340" stroke={accentColor} strokeWidth="1" />
+      <line x1="300" y1={nameY + 16} x2="660" y2={nameY + 16} stroke={accentColor} strokeWidth="1" />
 
-      <text x="480" y="380" fill={textColor} fontSize="15" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
+      <text x="480" y={eventY - 36} fill={textColor} fontSize="15" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.6">
         for active participation in
       </text>
 
       {/* Event Name */}
-      <text x="480" y="416" fill={textColor} fontSize="26" fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
+      <text x="480" y={eventY} fill={textColor} fontSize={eventSize} fontWeight="bold" fontFamily="Georgia, serif" textAnchor="middle">
         {eventName}
       </text>
 
       {/* Extra fields */}
       {extras.map(([k, v], idx) => (
-        <text key={k} x="480" y={446 + idx * 16} fill={textColor} fontSize="10" fontFamily="monospace" textAnchor="middle" opacity="0.7">
+        <text key={k} x="480" y={eventY + 30 + idx * 16} fill={textColor} fontSize="10" fontFamily="monospace" textAnchor="middle" opacity="0.7">
           {k}: {String(v)}
         </text>
       ))}
 
       {/* Expiry / Verification details */}
-      <g transform={`translate(480, ${500 + extras.length * 16})`} textAnchor="middle" fill={textColor} fontSize="10" fontFamily="monospace" opacity="0.7">
+      <g transform={`translate(480, ${eventY + 84 + extras.length * 16})`} textAnchor="middle" fill={textColor} fontSize="10" fontFamily="monospace" opacity="0.7">
         <text y="0">Issued On: {issued}</text>
         <text y="14">Verification ID: {certId}</text>
         <text y="26" fontSize="8" opacity="0.8">SHA-256: {hash.slice(0, 48)}…</text>
@@ -98,14 +117,15 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
         const bx = 60 + i * blockW;
         const cx = bx + blockW / 2;
         const sigImg = sigImgs[i];
+        const sigFont = sig.signatureFont || 'Great Vibes, cursive';
 
         return (
-          <g key={i} transform="translate(0, 560)">
+          <g key={i} transform={`translate(0, ${sigsY})`}>
             {/* Signature image or typed */}
             {sigImg ? (
               <image href={sigImg} x={cx - 50} y="-30" width="100" height="36" preserveAspectRatio="xMidYMid meet" />
             ) : sig.signatureType === 'typed' && sig.signatureData ? (
-              <text x={cx} y="2" fill={textColor} fontSize="22" fontStyle="italic" fontFamily="cursive" textAnchor="middle">
+              <text x={cx} y="2" fill={textColor} fontSize="24" fontFamily={sigFont} textAnchor="middle">
                 {sig.signatureData}
               </text>
             ) : null}
@@ -120,7 +140,7 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
 
             {/* Designation */}
             <text x={cx} y="36" fill={textColor} fontSize="9" fontStyle="italic" fontFamily="Georgia, serif" textAnchor="middle" opacity="0.7">
-              {sig.designation || ''}
+              {sig.designation || sig.title || ''}
             </text>
           </g>
         );
@@ -128,7 +148,7 @@ export function drawCustomSVG({ cert, eventName, orgName, logoUrls, sigImgs }: S
 
       {/* Verify bottom tag */}
       <text x="480" y="684" fill={textColor} opacity="0.5" fontSize="8" fontFamily="monospace" textAnchor="middle">
-        Verify at zerocert.app/verify?id={certId}
+        Verify at certxchange.vercel.app/verify?id={certId}
       </text>
 
       {/* Organization logos if background isn't too cluttered */}

@@ -15,8 +15,11 @@ const eventCreateSchema = z.object({
   coLogos: z.array(z.string()).default([]),
   signatories: z.array(z.object({
     name: z.string(),
-    title: z.string().optional(),
-    signatureUrl: z.string().optional(),
+    title: z.string().optional().nullable(),
+    signatureUrl: z.string().optional().nullable(),
+    signatureType: z.string().optional().nullable(),
+    signatureData: z.string().optional().nullable(),
+    signatureFont: z.string().optional().nullable(),
   })).default([]),
   bgImage: z.string().optional().nullable(),
   bgColor: z.string().optional().nullable(),
