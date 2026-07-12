@@ -6,10 +6,10 @@ import { authLimit } from '@/lib/ratelimit';
 import { sanitizeText, sanitizeSlug, sanitizeEmail } from '@/lib/sanitize';
 
 const registerSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-  password: z.string().min(8),
-  slug: z.string().min(2).max(100),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be under 100 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  slug: z.string().min(2, 'URL slug must be at least 2 characters').max(100, 'URL slug must be under 100 characters'),
 });
 
 export async function POST(req: NextRequest) {

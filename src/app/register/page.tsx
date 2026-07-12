@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [slug, setSlug] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const setOrg = useAuthStore((s) => s.setOrg);
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setLoading(true);
 
     try {
@@ -28,7 +30,18 @@ export default function RegisterPage() {
         body: JSON.stringify({ name, email, slug, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      if (!res.ok) {
+        if (data.details) {
+          const errors: Record<string, string> = {};
+          Object.keys(data.details).forEach((key) => {
+            if (data.details[key]?._errors?.length) {
+              errors[key] = data.details[key]._errors[0];
+            }
+          });
+          setFieldErrors(errors);
+        }
+        throw new Error(data.error || 'Registration failed');
+      }
       setOrg(data.org);
       router.push('/dashboard');
     } catch (err: any) {
@@ -55,44 +68,110 @@ export default function RegisterPage() {
               <label className="block text-[10px] text-muted tracking-widest uppercase mb-2">
                 Organization Name <span className="text-accent">*</span>
               </label>
-              <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="IIIT Blockchain Club" aria-label="Organization name"
-                className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none transition rounded" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, name: '' }));
+                }}
+                placeholder="IIIT Blockchain Club"
+                aria-label="Organization name"
+                className={`w-full font-mono text-xs p-3 bg-bg border ${
+                  fieldErrors.name ? 'border-err focus:border-err' : 'border-border focus:border-accent'
+                } text-text outline-none transition rounded`}
+              />
+              {fieldErrors.name && (
+                <div className="text-[10px] text-err font-mono mt-1.5">{fieldErrors.name}</div>
+              )}
             </div>
+
             <div>
               <label className="block text-[10px] text-muted tracking-widest uppercase mb-2">
                 Admin Email <span className="text-accent">*</span>
               </label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@org.com" aria-label="Email address"
-                className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none transition rounded" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, email: '' }));
+                }}
+                placeholder="admin@org.com"
+                aria-label="Email address"
+                className={`w-full font-mono text-xs p-3 bg-bg border ${
+                  fieldErrors.email ? 'border-err focus:border-err' : 'border-border focus:border-accent'
+                } text-text outline-none transition rounded`}
+              />
+              {fieldErrors.email && (
+                <div className="text-[10px] text-err font-mono mt-1.5">{fieldErrors.email}</div>
+              )}
             </div>
+
             <div>
               <label className="block text-[10px] text-muted tracking-widest uppercase mb-2">
                 URL Slug <span className="text-accent">*</span>
               </label>
-              <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder="iiit-blockchain" aria-label="Organization URL slug"
-                className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none transition rounded" />
+              <input
+                type="text"
+                required
+                value={slug}
+                onChange={(e) => {
+                  setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                  setFieldErrors((prev) => ({ ...prev, slug: '' }));
+                }}
+                placeholder="iiit-blockchain"
+                aria-label="Organization URL slug"
+                className={`w-full font-mono text-xs p-3 bg-bg border ${
+                  fieldErrors.slug ? 'border-err focus:border-err' : 'border-border focus:border-accent'
+                } text-text outline-none transition rounded`}
+              />
               <div className="text-[9px] text-muted mt-1">Only lowercase letters, numbers, and hyphens</div>
+              {fieldErrors.slug && (
+                <div className="text-[10px] text-err font-mono mt-1.5">{fieldErrors.slug}</div>
+              )}
             </div>
+
             <div>
               <label className="block text-[10px] text-muted tracking-widest uppercase mb-2">
                 Password <span className="text-accent">*</span>
               </label>
-              <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 8 characters" aria-label="Password"
-                className="w-full font-mono text-xs p-3 bg-bg border border-border focus:border-accent text-text outline-none transition rounded" />
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, password: '' }));
+                }}
+                placeholder="Min 8 characters"
+                aria-label="Password"
+                className={`w-full font-mono text-xs p-3 bg-bg border ${
+                  fieldErrors.password ? 'border-err focus:border-err' : 'border-border focus:border-accent'
+                } text-text outline-none transition rounded`}
+              />
+              {fieldErrors.password && (
+                <div className="text-[10px] text-err font-mono mt-1.5">{fieldErrors.password}</div>
+              )}
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3 bg-accent hover:bg-accentH disabled:bg-accent/40 text-black text-xs font-bold tracking-widest uppercase rounded transition">
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-accent hover:bg-accentH disabled:bg-accent/40 text-black text-xs font-bold tracking-widest uppercase rounded transition"
+            >
               {loading ? 'Creating...' : 'Create Organization'}
             </button>
           </form>
 
           <div className="mt-8 text-center text-[10px] text-muted tracking-wide font-mono">
             Already registered?{' '}
-            <Link href="/login" className="text-accent hover:underline">Sign in</Link>
+            <Link href="/login" className="text-accent hover:underline">
+              Sign in
+            </Link>
           </div>
         </div>
       </main>
